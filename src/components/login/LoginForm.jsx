@@ -54,7 +54,7 @@ const LoginForm = ({ nrp, setNrp, password, setPassword, handleSubmit, error }) 
             {error.password && <FormHelperText>{error.password}</FormHelperText>}
           </FormControl>
 
-          <Button type="submit" fullWidth variant="contained" size="large" sx={{ py: 1.5 }}>
+          <Button type="submit" fullWidth variant="contained" size="large" sx={{ py: 1.5 }} >
             Masuk
           </Button>
 

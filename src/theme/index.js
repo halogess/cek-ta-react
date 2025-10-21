@@ -4,7 +4,7 @@ import { createTheme } from '@mui/material/styles';
 export const theme = createTheme({
   palette: {
     primary: {
-      main: '#2563EB', // Biru yang lebih modern
+      main: '#0f3ea4ff', // Biru yang lebih modern
     },
     background: {
       default: '#F4F6F8', // Latar belakang abu-abu muda

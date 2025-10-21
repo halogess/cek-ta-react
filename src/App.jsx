@@ -1,21 +1,36 @@
 // src/App.jsx
 
+import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Navbar from './components/Navbar'; // Atau sidebar yang kita buat sebelumnya
 import { Box } from '@mui/material';
+import Sidebar from './components/Sidebar'; // KUNCI: Impor komponen Sidebar yang baru
+
+const drawerWidth = 280; // Lebar sidebar (sesuaikan dengan yang ada di Sidebar.jsx)
 
 function App() {
   return (
-    // Jika Anda menggunakan Sidebar dari jawaban sebelumnya, gunakan kode itu.
-    // Jika Anda hanya menggunakan Navbar sederhana, kode ini cukup.
-    <>
-      <Navbar />
-      {/* Container untuk konten halaman */}
-      <Box component="main" sx={{ p: 3 }}>
-        <Outlet /> 
-        {/* Outlet akan merender komponen anak (Home, MahasiswaDashboard, dll.) */}
+    // Gunakan Box dengan display: 'flex' untuk layout kiri-kanan
+    <Box sx={{ display: 'flex' }}>
+      
+      {/* Bagian Kiri: Sidebar */}
+      <Sidebar />
+
+      {/* Bagian Kanan: Konten Halaman Utama */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1, // Mengisi sisa ruang
+          p: 3, // Memberi padding pada area konten
+          width: `calc(100% - ${drawerWidth}px)`, // Lebar sisa setelah dikurangi sidebar
+          minHeight: '100vh',
+          backgroundColor: '#F9FAFB', // Warna latar abu-abu terang
+        }}
+      >
+        {/* Di sinilah halaman (seperti Home, dll.) akan dirender oleh React Router */}
+        <Outlet />
       </Box>
-    </>
+
+    </Box>
   );
 }
 
