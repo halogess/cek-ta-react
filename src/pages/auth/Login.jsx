@@ -6,8 +6,13 @@ import { Box, Paper, Grid } from '@mui/material';
 import BrandingPanel from '../../components/login/BrandingPanel';
 import LoginForm from '../../components/login/LoginForm';
 
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from '../../redux/userSlice';
+
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const [nrp, setNrp] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState({});
@@ -19,7 +24,17 @@ const Login = () => {
     if (!password) newErrors.password = 'Password tidak boleh kosong.';
     setError(newErrors);
     if (Object.keys(newErrors).length === 0) {
-      navigate('/home');
+
+      const role = nrp.toLowerCase() === 'admin' ? 'admin' : 'mahasiswa';
+      // Kirim data ke Redux store
+      dispatch(loginSuccess({ user: nrp, role: role }));
+
+      // Arahkan berdasarkan peran
+      if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/mahasiswa'); // default untuk mahasiswa
+      }
     }
   };
 
@@ -44,11 +59,8 @@ const Login = () => {
         }}
       >
         <Grid container>
-          {/* Kolom Kiri (Panel Biru) - Diperbaiki dari md={2} menjadi md={5} */}
           <Grid
             item
-            // md={5} // DIUBAH: dari 2 menjadi 5
-      
             sx={{
               width: "40%",
               display: { xs: 'none', sm: 'block' },
@@ -57,8 +69,7 @@ const Login = () => {
             <BrandingPanel />
           </Grid>
 
-          {/* Kolom Kanan (Form Putih) - Diperbaiki dari md={7} menjadi md={7} */}
-          <Grid item xs={12} lg={7} sx={{ display: 'flex',  width: {xs:'100%', sm:'60%'}, }}> 
+          <Grid item xs={12} lg={7} sx={{ display: 'flex', width: { xs: '100%', sm: '60%' }, }}>
             <LoginForm
               nrp={nrp}
               setNrp={setNrp}

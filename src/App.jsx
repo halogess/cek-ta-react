@@ -1,42 +1,45 @@
 // src/App.jsx
 
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import {
-  Box,
-  AppBar,
-  Toolbar,
-  IconButton,
-  Typography,
-  useTheme,
-  useMediaQuery,
+  Box, AppBar, Toolbar, IconButton, useTheme, useMediaQuery,
+  Button, Stack, Typography
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import Sidebar from './components/Sidebar';
+import PersonOutlineOutlined from '@mui/icons-material/PersonOutlineOutlined';
+import LogoutOutlined from '@mui/icons-material/LogoutOutlined';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from './redux/userSlice';
+import { useHeader } from './context/HeaderContext.jsx';
+import Sidebar from './components/general/Sidebar';
 
 const drawerWidth = 280;
 
 function App() {
-  // State untuk mengontrol buka/tutup sidebar di mobile
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  // Hook untuk mendeteksi ukuran layar
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { role } = useSelector((state) => state.user);
+  const { headerInfo } = useHeader();
 
-  // Fungsi untuk toggle sidebar
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/');
+  };
+
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* AppBar (Header Atas) */}
       <AppBar
         position="fixed"
         elevation={0}
         sx={{
-          // Atur lebar dan margin agar tidak menimpa sidebar di desktop
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
           backgroundColor: 'background.paper',
@@ -44,7 +47,6 @@ function App() {
         }}
       >
         <Toolbar>
-          {/* Tombol Hamburger Menu (hanya tampil di mobile) */}
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -54,32 +56,41 @@ function App() {
           >
             <MenuIcon />
           </IconButton>
-          {/* Anda bisa menambahkan judul halaman di sini jika perlu */}
-          <Typography variant="h6" noWrap component="div" color="text.primary">
-            Dashboard
-          </Typography>
+          
+          <Box>
+            <Typography variant="h6" fontWeight="bold" noWrap component="div" color="text.primary">
+              {headerInfo.title}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ flexGrow: 1 }} />
+
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Button
+              startIcon={<PersonOutlineOutlined />}
+              sx={{ color: 'text.secondary', textTransform: 'capitalize', fontWeight: 'medium' }}
+            >
+              {role === 'admin' ? 'Administrator' : 'Mahasiswa'}
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<LogoutOutlined />}
+              onClick={handleLogout}
+              sx={{ textTransform: 'capitalize', fontWeight: 'medium' }}
+            >
+              Keluar
+            </Button>
+          </Stack>
         </Toolbar>
       </AppBar>
 
-      {/* Komponen Sidebar */}
       <Sidebar
         isMobile={isMobile}
         mobileOpen={mobileOpen}
         onDrawerToggle={handleDrawerToggle}
       />
 
-      {/* Kontainer Konten Utama */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          backgroundColor: '#F9FAFB',
-          minHeight: '100vh',
-        }}
-      >
-        {/* Toolbar kosong ini berfungsi sebagai 'spacer' agar konten tidak tertutup AppBar */}
+      <Box component="main" sx={{ flexGrow: 1, p: 3, width: { md: `calc(100% - ${drawerWidth}px)` }, backgroundColor: '#F9FAFB', minHeight: '100vh' }}>
         <Toolbar />
         <Outlet />
       </Box>
