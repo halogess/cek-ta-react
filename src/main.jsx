@@ -18,6 +18,7 @@ import AdminDashboard from './pages/admin/Dashboard.jsx';
 import NotFound from './pages/NotFound.jsx';
 import Upload from './pages/mahasiswa/Upload.jsx';
 import History from './pages/mahasiswa/History.jsx';
+import DetailValidation from './pages/mahasiswa/DetailValidation.jsx';
 
 const router = createBrowserRouter([
   {
@@ -30,7 +31,8 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <MahasiswaDashboard /> },
       { path: 'upload', element: <Upload /> },
-      { path: 'history', element: <History /> }
+      { path: 'history', element: <History /> },
+      { path: 'detail/:id', element: <DetailValidation /> }
     ],
   },
   {

@@ -1,30 +1,9 @@
-// src/pages/Upload.jsx
-
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  Paper,
-  Typography,
-  Box,
-  Button,
-  Stack,
-  Radio,
-  FormControlLabel,
-  Avatar,
-  Input,
-  Alert,
-} from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Paper, Typography, Box, Button, Stack, Radio, FormControlLabel, Alert } from '@mui/material';
 import { UploadFileOutlined } from '@mui/icons-material';
 import { useHeader } from '../../context/HeaderContext';
-
-// Komponen kecil untuk item di "Informasi Penting"
-const InfoListItem = ({ number, text }) => (
-  <Stack direction="row" spacing={2} alignItems="center">
-    <Avatar sx={{ bgcolor: '#E0E7FF', color: '#3B82F6', width: 24, height: 24, fontSize: '0.875rem', fontWeight: 'bold' }}>
-      {number}
-    </Avatar>
-    <Typography color="text.secondary">{text}</Typography>
-  </Stack>
-);
+import FileUploadArea from '../../components/shared/ui/FileUploadArea';
+import InfoListItem from '../../components/shared/ui/InfoListItem';
 
 // Data sementara - seharusnya dari Redux/API
 const historyData = [
@@ -39,7 +18,6 @@ export default function Upload() {
   const [file, setFile] = useState(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const fileInputRef = useRef(null);
   const hasQueuedDoc = historyData.some(item => item.status === 'Dalam Antrian');
 
   // Mengatur judul header saat komponen dimuat
@@ -56,12 +34,6 @@ export default function Upload() {
   const handleFileChange = (event) => {
     if (event.target.files && event.target.files.length > 0) {
       setFile(event.target.files[0]);
-    }
-  };
-
-  const handleChooseFileClick = () => {
-    if (!hasQueuedDoc) {
-      fileInputRef.current.click();
     }
   };
 
@@ -98,67 +70,11 @@ export default function Upload() {
             </Alert>
           )}
 
-          {/* Input File Kustom */}
-            <Box
-              onClick={handleChooseFileClick}
-              sx={{
-                border: file ? '2px solid #3B82F6' : '2px dashed #D1D5DB',
-                borderRadius: '12px',
-                p: 6,
-                minHeight: '200px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                cursor: hasQueuedDoc ? 'not-allowed' : 'pointer',
-                backgroundColor: file ? '#F0F9FF' : '#FAFBFC',
-                opacity: hasQueuedDoc ? 0.5 : 1,
-                transition: 'all 0.2s ease',
-                '&:hover': { 
-                  borderColor: hasQueuedDoc ? '#D1D5DB' : 'primary.main',
-                  backgroundColor: hasQueuedDoc ? '#FAFBFC' : '#F8FAFC'
-                }
-              }}
-            >
-              <Box sx={{ mb: 2 }}>
-                <UploadFileOutlined sx={{ fontSize: 48, color: file ? 'primary.main' : '#9CA3AF' }} />
-              </Box>
-              
-              {file ? (
-                <Stack spacing={1} alignItems="center">
-                  <Typography variant="h6" fontWeight="medium" color="primary.main">
-                    {file.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    File siap untuk divalidasi
-                  </Typography>
-                  <Button variant="outlined" size="small" sx={{ mt: 1 }}>
-                    Ganti File
-                  </Button>
-                </Stack>
-              ) : (
-                <Stack spacing={1} alignItems="center">
-                  <Typography variant="h6" fontWeight="medium">
-                    Pilih file dokumen Anda
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Klik di sini atau seret file .docx ke area ini
-                  </Typography>
-                  <Button variant="contained" size="small" sx={{ mt: 2 }}>
-                    Pilih File
-                  </Button>
-                </Stack>
-              )}
-              
-              <Input
-                type="file"
-                inputRef={fileInputRef}
-                onChange={handleFileChange}
-                sx={{ display: 'none' }}
-                inputProps={{ accept: '.docx' }}
-              />
-            </Box>
+          <FileUploadArea
+            file={file}
+            onFileChange={handleFileChange}
+            disabled={hasQueuedDoc}
+          />
 
           {/* Konfirmasi Keaslian */}
           <Box

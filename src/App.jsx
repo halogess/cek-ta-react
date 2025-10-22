@@ -12,7 +12,7 @@ import LogoutOutlined from '@mui/icons-material/LogoutOutlined';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from './redux/userSlice';
 import { useHeader } from './context/HeaderContext.jsx';
-import Sidebar from './components/general/Sidebar';
+import Sidebar from './components/shared/layout/Sidebar';
 
 const drawerWidth = 280;
 

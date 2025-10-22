@@ -1,11 +1,11 @@
-// src/pages/mahasiswa/History.jsx
-
 import React, { useEffect, useState } from 'react';
-import { Stack, Paper, Box, FormControl, Select, MenuItem, InputLabel, TextField, InputAdornment, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Snackbar, Alert } from '@mui/material';
+import { Stack, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useHeader } from '../../context/HeaderContext';
-import HistoryItem from '../../components/dashboard/HistoryItem';
-import { SearchOutlined, RestartAlt } from '@mui/icons-material';
+import HistoryItem from '../../components/shared/ui/HistoryItem';
+import FilterBar from '../../components/shared/ui/FilterBar';
+import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
+import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 
 // Data statis untuk simulasi
 const validationHistoryData = [
@@ -168,52 +168,19 @@ export default function History() {
   return (
     <Stack spacing={3}>
       <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-        {/* Filter dan Sort */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-          <TextField
-            placeholder="Cari nama file..."
-            size="small"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ flex: 1, minWidth: '200px' }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchOutlined />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>Status</InputLabel>
-            <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
-              <MenuItem value="Semua">Semua Status</MenuItem>
-              <MenuItem value="Dalam Antrian">Dalam Antrian</MenuItem>
-              <MenuItem value="Menunggu Konfirmasi">Menunggu Konfirmasi</MenuItem>
-              <MenuItem value="Selesai">Selesai</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>Urutkan</InputLabel>
-            <Select value={sortBy} label="Urutkan" onChange={(e) => setSortBy(e.target.value)}>
-              <MenuItem value="terbaru">Terbaru</MenuItem>
-              <MenuItem value="terlama">Terlama</MenuItem>
-              <MenuItem value="nama">Nama File</MenuItem>
-            </Select>
-          </FormControl>
-          <Button 
-            variant="outlined" 
-            size="small"
-            startIcon={<RestartAlt />}
-            onClick={() => {
-              setFilterStatus('Semua');
-              setSortBy('terbaru');
-              setSearchQuery('');
-            }}
-          >
-            Reset
-          </Button>
-        </Box>
+        <FilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          filterStatus={filterStatus}
+          onFilterChange={setFilterStatus}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          onReset={() => {
+            setFilterStatus('Semua');
+            setSortBy('terbaru');
+            setSearchQuery('');
+          }}
+        />
 
         {/* List Riwayat */}
         <Stack spacing={2}>
@@ -228,36 +195,32 @@ export default function History() {
               errorCount={item.errorCount}
               onCancel={() => handleCancelClick(item.filename)}
               isPassedValidation={item.isPassedValidation}
-              onDetail={() => alert(`Detail: ${item.filename}`)}
+              onDetail={() => navigate(`/mahasiswa/detail/${item.id}`)}
               onDownload={handleDownloadCertificate}
             />
           ))}
         </Stack>
       </Paper>
 
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Batalkan Validasi?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Apakah Anda yakin ingin membatalkan validasi dokumen <strong>{selectedDoc}</strong>? Tindakan ini tidak dapat dibatalkan.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Batal</Button>
-          <Button onClick={handleConfirmCancel} color="error" variant="contained">Ya, Batalkan</Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onConfirm={handleConfirmCancel}
+        title="Batalkan Validasi?"
+        message={<>Apakah Anda yakin ingin membatalkan validasi dokumen <strong>{selectedDoc}</strong>? Tindakan ini tidak dapat dibatalkan.</>}
+      />
 
-      <Snackbar open={showSuccess} autoHideDuration={3000} onClose={() => setShowSuccess(false)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-        <Alert onClose={() => setShowSuccess(false)} severity="success" sx={{ width: '100%' }}>
-          Sertifikat berhasil didownload!
-        </Alert>
-      </Snackbar>
-      <Snackbar open={showCancelSuccess} autoHideDuration={3000} onClose={() => setShowCancelSuccess(false)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-        <Alert onClose={() => setShowCancelSuccess(false)} severity="success" sx={{ width: '100%' }}>
-          Dokumen berhasil dibatalkan!
-        </Alert>
-      </Snackbar>
+      <NotificationSnackbar
+        open={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        message="Sertifikat berhasil didownload!"
+      />
+      
+      <NotificationSnackbar
+        open={showCancelSuccess}
+        onClose={() => setShowCancelSuccess(false)}
+        message="Dokumen berhasil dibatalkan!"
+      />
     </Stack>
   );
 }

@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Paper, Grid } from '@mui/material';
-import BrandingPanel from '../../components/login/BrandingPanel';
-import LoginForm from '../../components/login/LoginForm';
+import BrandingPanel from '../../components/shared/auth/BrandingPanel';
+import LoginForm from '../../components/shared/auth/LoginForm';
 
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../../redux/userSlice';
