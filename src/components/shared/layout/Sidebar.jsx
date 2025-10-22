@@ -20,7 +20,7 @@ import {
 } from '@mui/icons-material';
 
 import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../../redux/userSlice';
+import { logout } from '../../../redux/userSlice';
 
 const drawerWidth = 280;
 
@@ -69,7 +69,7 @@ const adminMenuItems = [
     { text: 'Kelola Dokumen', icon: <FactCheckOutlined />, path: '/admin/documents' },
 ];
 
-const Sidebar = ({ isMobile, mobileOpen, onDrawerToggle }) => {
+const Sidebar = ({ isMobile, mobileOpen, desktopOpen, onDrawerToggle }) => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -158,7 +158,7 @@ const Sidebar = ({ isMobile, mobileOpen, onDrawerToggle }) => {
     return (
         <Box
             component="nav"
-            sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+            sx={{ flexShrink: { md: 0 } }}
         >
             {/* Drawer untuk Mobile (Temporary) */}
             <Drawer
@@ -180,16 +180,17 @@ const Sidebar = ({ isMobile, mobileOpen, onDrawerToggle }) => {
                 {drawerContent}
             </Drawer>
 
-            {/* Drawer untuk Desktop (Permanent) */}
+            {/* Drawer untuk Desktop (Persistent) */}
             <Drawer
-                variant="permanent"
-                open
+                variant="persistent"
+                open={desktopOpen}
                 sx={{
                     display: { xs: 'none', md: 'block' },
+                    width: desktopOpen ? drawerWidth : 0,
+                    flexShrink: 0,
                     '& .MuiDrawer-paper': {
                         boxSizing: 'border-box',
                         width: drawerWidth,
-                        // KUNCI 3: Ganti backgroundColor menjadi background gradient
                         background: 'linear-gradient(160deg, #111827 0%, #1E40AF 100%)',
                         borderRight: 'none',
                     },

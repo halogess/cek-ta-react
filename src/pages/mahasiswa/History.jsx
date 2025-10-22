@@ -2,13 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { Stack, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useHeader } from '../../context/HeaderContext';
+import { useSelector } from 'react-redux';
 import HistoryItem from '../../components/shared/ui/HistoryItem';
 import FilterBar from '../../components/shared/ui/FilterBar';
 import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 
 // Data statis untuk simulasi
-const validationHistoryData = [
+const getValidationHistoryData = (user) => {
+  // Jika user adalah 'upload', return array kosong
+  if (user === 'upload') {
+    return [];
+  }
+  
+  // Data default untuk user lain
+  return [
   {
     id: 1,
     filename: 'Proposal_TA_2024.docx',
@@ -29,47 +37,8 @@ const validationHistoryData = [
   },
   {
     id: 3,
-    filename: 'Draft_TA_Revisi.docx',
-    date: '2024-01-18',
-    size: '2.8 MB',
-    status: 'Selesai',
-    statusColor: 'success',
-    errorCount: 3,
-    isPassedValidation: false,
-  },
-  {
-    id: 4,
-    filename: 'BAB_1_Pendahuluan.docx',
-    date: '2024-01-17',
-    size: '1.5 MB',
-    status: 'Selesai',
-    statusColor: 'success',
-    errorCount: 8,
-    isPassedValidation: false,
-  },
-  {
-    id: 5,
-    filename: 'BAB_2_Tinjauan_Pustaka.docx',
-    date: '2024-01-16',
-    size: '2.2 MB',
-    status: 'Menunggu Konfirmasi',
-    statusColor: 'warning',
-    errorCount: 2,
-  },
-  {
-    id: 6,
-    filename: 'BAB_3_Metodologi.docx',
-    date: '2024-01-15',
-    size: '1.9 MB',
-    status: 'Selesai',
-    statusColor: 'success',
-    errorCount: 12,
-    isPassedValidation: false,
-  },
-  {
-    id: 7,
     filename: 'Laporan_Skripsi_Final.docx',
-    date: '2024-01-14',
+    date: '2024-01-18',
     size: '4.2 MB',
     status: 'Selesai',
     statusColor: 'success',
@@ -77,9 +46,57 @@ const validationHistoryData = [
     isPassedValidation: true,
   },
   {
+    id: 4,
+    filename: 'Draft_TA_Revisi.docx',
+    date: '2024-01-17',
+    size: '2.8 MB',
+    status: 'Selesai',
+    statusColor: 'success',
+    errorCount: 3,
+    isPassedValidation: false,
+  },
+  {
+    id: 5,
+    filename: 'Draft_Awal.docx',
+    date: '2024-01-16',
+    size: '1.8 MB',
+    status: 'Dibatalkan',
+    statusColor: 'error',
+    errorCount: 0,
+  },
+  {
+    id: 6,
+    filename: 'BAB_1_Pendahuluan.docx',
+    date: '2024-01-15',
+    size: '1.5 MB',
+    status: 'Selesai',
+    statusColor: 'success',
+    errorCount: 8,
+    isPassedValidation: false,
+  },
+  {
+    id: 7,
+    filename: 'BAB_2_Tinjauan_Pustaka.docx',
+    date: '2024-01-14',
+    size: '2.2 MB',
+    status: 'Menunggu Konfirmasi',
+    statusColor: 'warning',
+    errorCount: 2,
+  },
+  {
     id: 8,
-    filename: 'Abstrak_Penelitian.docx',
+    filename: 'BAB_3_Metodologi.docx',
     date: '2024-01-13',
+    size: '1.9 MB',
+    status: 'Selesai',
+    statusColor: 'success',
+    errorCount: 12,
+    isPassedValidation: false,
+  },
+  {
+    id: 9,
+    filename: 'Abstrak_Penelitian.docx',
+    date: '2024-01-12',
     size: '0.8 MB',
     status: 'Selesai',
     statusColor: 'success',
@@ -87,30 +104,31 @@ const validationHistoryData = [
     isPassedValidation: false,
   },
   {
-    id: 9,
+    id: 10,
     filename: 'Daftar_Pustaka.docx',
-    date: '2024-01-12',
+    date: '2024-01-11',
     size: '1.2 MB',
     status: 'Menunggu Konfirmasi',
     statusColor: 'warning',
     errorCount: 1,
   },
   {
-    id: 10,
+    id: 11,
     filename: 'Lampiran_Data.docx',
-    date: '2024-01-11',
+    date: '2024-01-10',
     size: '3.5 MB',
     status: 'Selesai',
     statusColor: 'success',
     errorCount: 6,
     isPassedValidation: false,
   },
-];
-
+  ];
+};
 
 export default function History() {
   const { setHeaderInfo } = useHeader();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.user);
   const [filterStatus, setFilterStatus] = useState('Semua');
   const [sortBy, setSortBy] = useState('terbaru');
   const [searchQuery, setSearchQuery] = useState('');
@@ -118,6 +136,7 @@ export default function History() {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCancelSuccess, setShowCancelSuccess] = useState(false);
+  const [showConfirmSuccess, setShowConfirmSuccess] = useState(false);
 
   useEffect(() => {
     setHeaderInfo({ title: 'Riwayat Validasi' });
@@ -141,6 +160,14 @@ export default function History() {
     setShowSuccess(true);
   };
 
+  const handleConfirmDocument = () => {
+    // Logic untuk konfirmasi dokumen
+    setShowConfirmSuccess(true);
+  };
+
+  // Get data based on user
+  const validationHistoryData = getValidationHistoryData(user);
+  
   // Filter dan sort data
   let filteredData = validationHistoryData;
   
@@ -183,7 +210,7 @@ export default function History() {
         />
 
         {/* List Riwayat */}
-        <Stack spacing={2}>
+        <Stack spacing={2} sx={{ mt: 3 }}>
           {filteredData.map((item) => (
             <HistoryItem
               key={item.id}
@@ -197,6 +224,7 @@ export default function History() {
               isPassedValidation={item.isPassedValidation}
               onDetail={() => navigate(`/mahasiswa/detail/${item.id}`)}
               onDownload={handleDownloadCertificate}
+              onConfirm={handleConfirmDocument}
             />
           ))}
         </Stack>
@@ -220,6 +248,12 @@ export default function History() {
         open={showCancelSuccess}
         onClose={() => setShowCancelSuccess(false)}
         message="Dokumen berhasil dibatalkan!"
+      />
+
+      <NotificationSnackbar
+        open={showConfirmSuccess}
+        onClose={() => setShowConfirmSuccess(false)}
+        message="Dokumen berhasil dikonfirmasi!"
       />
     </Stack>
   );

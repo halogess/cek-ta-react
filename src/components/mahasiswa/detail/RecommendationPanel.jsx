@@ -3,16 +3,16 @@ import { LightbulbOutlined, ErrorOutline } from '@mui/icons-material';
 
 export default function RecommendationPanel({ error }) {
   return (
-    <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0', flex: 1.5, minWidth: { xs: '100%', md: '400px' } }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <LightbulbOutlined color="primary" />
-        <Typography variant="h6" fontWeight="bold">Rekomendasi Perbaikan</Typography>
+    <Paper elevation={0} sx={{ p: 2.5, borderRadius: '12px', border: '1px solid #E2E8F0', height: '100%' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+        <LightbulbOutlined color="primary" sx={{ fontSize: 20 }} />
+        <Typography variant="subtitle1" fontWeight="600">Rekomendasi Perbaikan</Typography>
       </Box>
-      <Typography color="text.secondary" sx={{ mb: 3 }}>Langkah-langkah untuk memperbaiki dokumen</Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>Langkah-langkah untuk memperbaiki</Typography>
 
-      <Box sx={{ p: 2, bgcolor: '#F9FAFB', borderRadius: '8px', mb: 3 }}>
-        <Typography variant="body2" fontWeight="600" gutterBottom>Kesalahan Terpilih:</Typography>
-        <Typography color="text.secondary">{error.title}</Typography>
+      <Box sx={{ p: 1.5, bgcolor: '#F9FAFB', borderRadius: '8px', mb: 2 }}>
+        <Typography variant="caption" fontWeight="600" gutterBottom sx={{ display: 'block' }}>Kesalahan Terpilih:</Typography>
+        <Typography variant="body2" color="text.secondary">{error.title}</Typography>
         <Typography variant="caption" color="error" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
           <ErrorOutline sx={{ fontSize: 14 }} /> {error.location}
         </Typography>
@@ -38,17 +38,17 @@ export default function RecommendationPanel({ error }) {
             >
               {index + 1}
             </Box>
-            <Typography>{step}</Typography>
+            <Typography variant="body2">{step}</Typography>
           </Box>
         ))}
       </Stack>
 
-      <Box sx={{ mt: 3, p: 2, bgcolor: '#EFF6FF', borderRadius: '8px', border: '1px solid #BFDBFE' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <LightbulbOutlined sx={{ color: '#3B82F6', fontSize: 20 }} />
-          <Typography fontWeight="600" color="#1E40AF">Tips Tambahan</Typography>
+      <Box sx={{ mt: 2, p: 1.5, bgcolor: '#EFF6FF', borderRadius: '8px', border: '1px solid #BFDBFE' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+          <LightbulbOutlined sx={{ color: '#3B82F6', fontSize: 18 }} />
+          <Typography variant="caption" fontWeight="600" color="#1E40AF">Tips Tambahan</Typography>
         </Box>
-        <Typography variant="body2" color="#1E40AF">{error.tips}</Typography>
+        <Typography variant="caption" color="#1E40AF" sx={{ display: 'block', lineHeight: 1.5 }}>{error.tips}</Typography>
       </Box>
     </Paper>
   );

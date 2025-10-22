@@ -2,23 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Paper, Typography, Box, Button, Stack, Radio, FormControlLabel, Alert } from '@mui/material';
 import { UploadFileOutlined } from '@mui/icons-material';
 import { useHeader } from '../../context/HeaderContext';
+  import { useSelector } from 'react-redux';
 import FileUploadArea from '../../components/shared/ui/FileUploadArea';
 import InfoListItem from '../../components/shared/ui/InfoListItem';
 
-// Data sementara - seharusnya dari Redux/API
-const historyData = [
-  {
-    filename: 'Proposal_TA_2024.docx',
-    status: 'Dalam Antrian',
-  },
-];
-
 export default function Upload() {
   const { setHeaderInfo } = useHeader();
+  const { user } = useSelector((state) => state.user);
   const [file, setFile] = useState(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const hasQueuedDoc = historyData.some(item => item.status === 'Dalam Antrian');
+  
+  // User 'upload' tidak memiliki dokumen dalam antrian
+  const hasQueuedDoc = user !== 'upload';
 
   // Mengatur judul header saat komponen dimuat
   useEffect(() => {

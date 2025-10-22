@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Stack } from '@mui/material';
 import { useHeader } from '../../context/HeaderContext';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import StatsCards from '../../components/mahasiswa/dashboard/StatsCards';
 import ValidationActions from '../../components/mahasiswa/dashboard/ValidationActions';
 import ValidationHistory from '../../components/mahasiswa/dashboard/ValidationHistory';
@@ -9,7 +10,14 @@ import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 
 // Data sementara untuk riwayat
-const historyData = [
+const getHistoryData = (user) => {
+  // Jika user adalah 'upload', return array kosong (tidak ada dokumen dalam antrian)
+  if (user === 'upload') {
+    return [];
+  }
+  
+  // Data default untuk user lain
+  return [
   {
     filename: 'Proposal_TA_2024.docx',
     date: '2024-01-20',
@@ -27,8 +35,17 @@ const historyData = [
     errorCount: 5,
   },
   {
-    filename: 'Draft_TA_Revisi.docx',
+    filename: 'Laporan_Skripsi_Final.docx',
     date: '2024-01-18',
+    size: '4.2 MB',
+    status: 'Selesai',
+    statusColor: 'success',
+    errorCount: 0,
+    isPassedValidation: true,
+  },
+  {
+    filename: 'Draft_TA_Revisi.docx',
+    date: '2024-01-17',
     size: '2.8 MB',
     status: 'Selesai',
     statusColor: 'success',
@@ -36,8 +53,16 @@ const historyData = [
     isPassedValidation: false,
   },
   {
+    filename: 'Draft_Awal.docx',
+    date: '2024-01-16',
+    size: '1.8 MB',
+    status: 'Dibatalkan',
+    statusColor: 'error',
+    errorCount: 0,
+  },
+  {
     filename: 'BAB_1_Pendahuluan.docx',
-    date: '2024-01-17',
+    date: '2024-01-15',
     size: '1.5 MB',
     status: 'Selesai',
     statusColor: 'success',
@@ -46,7 +71,7 @@ const historyData = [
   },
   {
     filename: 'BAB_2_Tinjauan_Pustaka.docx',
-    date: '2024-01-16',
+    date: '2024-01-14',
     size: '2.2 MB',
     status: 'Menunggu Konfirmasi',
     statusColor: 'warning',
@@ -54,7 +79,7 @@ const historyData = [
   },
   {
     filename: 'BAB_3_Metodologi.docx',
-    date: '2024-01-15',
+    date: '2024-01-13',
     size: '1.9 MB',
     status: 'Selesai',
     statusColor: 'success',
@@ -62,17 +87,8 @@ const historyData = [
     isPassedValidation: false,
   },
   {
-    filename: 'Laporan_Skripsi_Final.docx',
-    date: '2024-01-14',
-    size: '4.2 MB',
-    status: 'Selesai',
-    statusColor: 'success',
-    errorCount: 0,
-    isPassedValidation: true,
-  },
-  {
     filename: 'Abstrak_Penelitian.docx',
-    date: '2024-01-13',
+    date: '2024-01-12',
     size: '0.8 MB',
     status: 'Selesai',
     statusColor: 'success',
@@ -81,7 +97,7 @@ const historyData = [
   },
   {
     filename: 'Daftar_Pustaka.docx',
-    date: '2024-01-12',
+    date: '2024-01-11',
     size: '1.2 MB',
     status: 'Menunggu Konfirmasi',
     statusColor: 'warning',
@@ -89,17 +105,22 @@ const historyData = [
   },
   {
     filename: 'Lampiran_Data.docx',
-    date: '2024-01-11',
+    date: '2024-01-10',
     size: '3.5 MB',
     status: 'Selesai',
     statusColor: 'success',
     errorCount: 6,
     isPassedValidation: false,
   },
-];
+  ];
+};
+
 export default function MahasiswaDashboard() {
   const { setHeaderInfo } = useHeader();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.user);
+  
+  const historyData = getHistoryData(user);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -139,13 +160,15 @@ export default function MahasiswaDashboard() {
         hasQueuedDoc={historyData.some(item => item.status === 'Dalam Antrian')} 
       />
       
-      <ValidationHistory
-        historyData={historyData.slice(0, 5)}
-        onCancel={handleCancelClick}
-        onDetail={(id) => navigate(`/mahasiswa/detail/${id}`)}
-        onDownload={handleDownloadCertificate}
-        onViewMore={() => navigate('/mahasiswa/history')}
-      />
+      {historyData.length > 0 && (
+        <ValidationHistory
+          historyData={historyData.slice(0, 5)}
+          onCancel={handleCancelClick}
+          onDetail={(id) => navigate(`/mahasiswa/detail/${id}`)}
+          onDownload={handleDownloadCertificate}
+          onViewMore={() => navigate('/mahasiswa/history')}
+        />
+      )}
 
       <ConfirmDialog
         open={openDialog}

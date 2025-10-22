@@ -18,6 +18,7 @@ const drawerWidth = 280;
 
 function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopOpen, setDesktopOpen] = useState(true);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useDispatch();
@@ -26,7 +27,11 @@ function App() {
   const { headerInfo } = useHeader();
 
   const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+    if (isMobile) {
+      setMobileOpen(!mobileOpen);
+    } else {
+      setDesktopOpen(!desktopOpen);
+    }
   };
 
   const handleLogout = () => {
@@ -40,10 +45,11 @@ function App() {
         position="fixed"
         elevation={0}
         sx={{
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
+          width: { md: desktopOpen ? `calc(100% - ${drawerWidth}px)` : '100%' },
+          ml: { md: desktopOpen ? `${drawerWidth}px` : 0 },
           backgroundColor: 'background.paper',
           borderBottom: '1px solid #E2E8F0',
+          transition: 'all 0.3s ease',
         }}
       >
         <Toolbar>
@@ -52,7 +58,7 @@ function App() {
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' }, color: 'text.primary' }}
+            sx={{ mr: 2, color: 'text.primary' }}
           >
             <MenuIcon />
           </IconButton>
@@ -87,10 +93,11 @@ function App() {
       <Sidebar
         isMobile={isMobile}
         mobileOpen={mobileOpen}
+        desktopOpen={desktopOpen}
         onDrawerToggle={handleDrawerToggle}
       />
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: { md: `calc(100% - ${drawerWidth}px)` }, backgroundColor: '#F9FAFB', minHeight: '100vh' }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: '#F9FAFB', minHeight: '100vh' }}>
         <Toolbar />
         <Outlet />
       </Box>

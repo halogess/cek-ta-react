@@ -1,9 +1,9 @@
 import React from 'react';
 import { Paper, Typography, Box, Stack, IconButton, Chip, Tooltip } from '@mui/material';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
-import { CheckCircleOutline, ErrorOutline, HourglassEmptyOutlined, CancelOutlined, DownloadOutlined } from '@mui/icons-material';
+import { CheckCircleOutline, ErrorOutline, HourglassEmptyOutlined, CancelOutlined, DownloadOutlined, CheckOutlined, BlockOutlined } from '@mui/icons-material';
 
-const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload }) => (
+const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload, onConfirm }) => (
   <Paper
     elevation={0}
     onClick={onDetail}
@@ -54,9 +54,20 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
           </>
         )}
       </Box>
-      <Tooltip title={status === 'Dalam Antrian' ? 'Dokumen sedang menunggu diproses' : status === 'Menunggu Konfirmasi' ? 'Dokumen memerlukan konfirmasi' : 'Validasi dokumen selesai'} arrow>
+      <Tooltip 
+        title={status === 'Dalam Antrian' ? 'Dokumen sedang menunggu diproses' : status === 'Menunggu Konfirmasi' ? 'Struktur dokumen telah diidentifikasi, silahkan konfirmasi jika sudah sesuai' : status === 'Dibatalkan' ? 'Validasi dokumen telah dibatalkan' : 'Validasi dokumen selesai'} 
+        arrow
+        componentsProps={{
+          tooltip: {
+            sx: {
+              maxWidth: 250,
+              textAlign: 'center'
+            }
+          }
+        }}
+      >
         <Chip 
-          icon={status === 'Selesai' ? <CheckCircleOutline /> : status === 'Menunggu Konfirmasi' ? <ErrorOutline /> : <HourglassEmptyOutlined />}
+          icon={status === 'Selesai' ? <CheckCircleOutline /> : status === 'Menunggu Konfirmasi' ? <ErrorOutline /> : status === 'Dibatalkan' ? <BlockOutlined /> : <HourglassEmptyOutlined />}
           label={status} 
           color={statusColor} 
           size="small" 
@@ -64,9 +75,9 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
           sx={{ 
             width: 200,
             fontWeight: 500,
-            bgcolor: statusColor === 'primary' ? '#DBEAFE' : statusColor === 'warning' ? '#FEF3C7' : '#D1FAE5',
-            color: statusColor === 'primary' ? '#1E40AF' : statusColor === 'warning' ? '#92400E' : '#065F46',
-            borderColor: statusColor === 'primary' ? '#3B82F6' : statusColor === 'warning' ? '#F59E0B' : '#10B981'
+            bgcolor: statusColor === 'primary' ? '#DBEAFE' : statusColor === 'warning' ? '#FEF3C7' : statusColor === 'error' ? '#FEE2E2' : '#D1FAE5',
+            color: statusColor === 'primary' ? '#1E40AF' : statusColor === 'warning' ? '#92400E' : statusColor === 'error' ? '#991B1B' : '#065F46',
+            borderColor: statusColor === 'primary' ? '#3B82F6' : statusColor === 'warning' ? '#F59E0B' : statusColor === 'error' ? '#EF4444' : '#10B981'
           }} 
         />
       </Tooltip>
@@ -75,6 +86,13 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
           <Tooltip title="Batalkan" arrow>
             <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); onCancel(); }}>
               <CancelOutlined />
+            </IconButton>
+          </Tooltip>
+        )}
+        {status === 'Menunggu Konfirmasi' && (
+          <Tooltip title="Konfirmasi" arrow>
+            <IconButton size="small" color="success" onClick={(e) => { e.stopPropagation(); onConfirm(); }}>
+              <CheckOutlined />
             </IconButton>
           </Tooltip>
         )}
