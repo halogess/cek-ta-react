@@ -17,6 +17,8 @@ import {
     HistoryOutlined,
     FactCheckOutlined,
     LogoutOutlined,
+    DescriptionOutlined,
+    SettingsOutlined,
 } from '@mui/icons-material';
 
 import { useSelector, useDispatch } from 'react-redux';
@@ -65,8 +67,10 @@ const mahasiswaMenuItems = [
 ];
 
 const adminMenuItems = [
-    { text: 'Admin Dashboard', icon: <HomeOutlined />, path: '/admin' },
-    { text: 'Kelola Dokumen', icon: <FactCheckOutlined />, path: '/admin/documents' },
+    { text: 'Dashboard', icon: <HomeOutlined />, path: '/admin' },
+    { text: 'Template Panduan', icon: <DescriptionOutlined />, path: '/admin/template' },
+    { text: 'Editor Aturan', icon: <SettingsOutlined />, path: '/admin/rules' },
+    { text: 'Riwayat Mahasiswa', icon: <HistoryOutlined />, path: '/admin/history' },
 ];
 
 const Sidebar = ({ isMobile, mobileOpen, desktopOpen, onDrawerToggle }) => {

@@ -15,6 +15,7 @@ import App from './App.jsx';
 import Login from './pages/auth/Login.jsx';
 import MahasiswaDashboard from './pages/mahasiswa/Dashboard.jsx';
 import AdminDashboard from './pages/admin/Dashboard.jsx';
+import TemplatePanduan from './pages/admin/TemplatePanduan.jsx';
 import NotFound from './pages/NotFound.jsx';
 import Upload from './pages/mahasiswa/Upload.jsx';
 import History from './pages/mahasiswa/History.jsx';
@@ -40,6 +41,7 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <AdminDashboard /> },
+      { path: 'template', element: <TemplatePanduan /> },
     ],
   },
   {

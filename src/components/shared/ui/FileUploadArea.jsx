@@ -67,7 +67,10 @@ export default function FileUploadArea({ file, onFileChange, disabled = false, a
       <Input
         type="file"
         inputRef={fileInputRef}
-        onChange={onFileChange}
+        onChange={(e) => {
+          onFileChange(e);
+          e.target.value = '';
+        }}
         sx={{ display: 'none' }}
         inputProps={{ accept }}
       />
