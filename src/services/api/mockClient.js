@@ -1,11 +1,24 @@
+/**
+ * Mock API Client - Simulasi backend API untuk development
+ * Mengembalikan data dari mockData.js dan validationData.js
+ * dengan delay untuk simulasi network latency
+ * 
+ * Digunakan saat VITE_USE_MOCK=true
+ */
+
 import { mockUsers, getAllValidations, getValidationsByUser, getValidationById } from '../../data/mockData';
 import { documentStructure, errors } from '../../data/validationData';
 
+// Simulasi network delay
 const delay = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms));
 
 const mockApiClient = {
+  /**
+   * Mock GET request - Route berdasarkan endpoint pattern
+   * Mendukung query parameters dan responseType blob
+   */
   get: async (endpoint, options = {}) => {
-    await delay();
+    await delay(); // Simulasi network latency
     
     if (endpoint.startsWith('/validations/user/')) {
       const userId = endpoint.split('/').pop();
@@ -411,6 +424,9 @@ const mockApiClient = {
     throw new Error('Endpoint not found');
   },
 
+  /**
+   * Mock POST request - Handle login dan logout
+   */
   post: async (endpoint, data) => {
     await delay();
     
@@ -430,6 +446,9 @@ const mockApiClient = {
     throw new Error('Endpoint not found');
   },
 
+  /**
+   * Mock PUT request - Handle update operations
+   */
   put: async (endpoint, data) => {
     await delay();
     
@@ -456,13 +475,20 @@ const mockApiClient = {
     throw new Error('Endpoint not found');
   },
 
+  /**
+   * Mock DELETE request - Return success message
+   */
   delete: async (endpoint) => {
     await delay();
     return { message: 'Deleted successfully' };
   },
 
+  /**
+   * Mock UPLOAD request - Handle file uploads
+   * Delay lebih lama untuk simulasi upload
+   */
   upload: async (endpoint, formData) => {
-    await delay(1000);
+    await delay(1000); // Delay lebih lama untuk upload
     
     if (endpoint === '/validations/upload') {
       return {

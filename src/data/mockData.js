@@ -1,4 +1,10 @@
-// Mock data untuk seluruh aplikasi
+/**
+ * Mock Data - Data dummy untuk development dan testing
+ * Berisi data users, validations, dan helper functions
+ * Digunakan oleh mockClient.js saat VITE_USE_MOCK=true
+ */
+
+// Data mahasiswa untuk testing
 export const mockUsers = [
   {
     id: 1,

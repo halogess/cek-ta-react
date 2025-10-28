@@ -1,3 +1,9 @@
+/**
+ * Validation Data - Mock data untuk detail hasil validasi
+ * Berisi struktur dokumen dan daftar error untuk testing
+ */
+
+// Struktur dokumen dengan statistik per BAB dan section
 export const documentStructure = [
   {
     chapter: 'BAB I PENDAHULUAN',

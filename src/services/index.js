@@ -1,3 +1,9 @@
+/**
+ * Central export untuk semua services
+ * Memudahkan import services di components:
+ * import { authService, validationService } from '../../services';
+ */
+
 export { authService } from './api/authService';
 export { validationService } from './api/validationService';
 export { templateService } from './api/templateService';
