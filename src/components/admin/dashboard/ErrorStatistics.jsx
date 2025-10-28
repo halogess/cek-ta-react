@@ -1,21 +1,6 @@
-import { useState, useEffect } from 'react';
 import { Box, Paper, Typography, Stack } from '@mui/material';
-import { dashboardService } from '../../../services';
 
-export default function ErrorStatistics() {
-  const [errorStats, setErrorStats] = useState([]);
-
-  useEffect(() => {
-    const fetchErrorStats = async () => {
-      try {
-        const data = await dashboardService.getErrorStatistics();
-        setErrorStats(data);
-      } catch (error) {
-        console.error('Error fetching error stats:', error);
-      }
-    };
-    fetchErrorStats();
-  }, []);
+export default function ErrorStatistics({ errorStats = [] }) {
 
   return (
     <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0' }}>

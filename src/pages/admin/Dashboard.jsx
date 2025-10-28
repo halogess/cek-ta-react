@@ -5,11 +5,15 @@ import StatsCards from '../../components/admin/dashboard/StatsCards';
 import ErrorStatistics from '../../components/admin/dashboard/ErrorStatistics';
 import SystemInfo from '../../components/admin/dashboard/SystemInfo';
 import Loading from '../../components/shared/ui/Loading';
-import { dashboardService } from '../../services';
+import { dashboardService, templateService } from '../../services';
 
 export default function AdminDashboard() {
   const { setHeaderInfo } = useHeader();
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
+  const [errorStats, setErrorStats] = useState(null);
+  const [systemInfo, setSystemInfo] = useState(null);
+  const [activeTemplate, setActiveTemplate] = useState(null);
 
   useEffect(() => {
     setHeaderInfo({ title: 'Dashboard' });
@@ -20,11 +24,16 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      await Promise.all([
+      const [statsData, errorStatsData, systemInfoData, templateData] = await Promise.all([
         dashboardService.getAdminStats(),
         dashboardService.getErrorStatistics(),
-        dashboardService.getSystemInfo()
+        dashboardService.getSystemInfo(),
+        templateService.getActiveTemplate()
       ]);
+      setStats(statsData);
+      setErrorStats(errorStatsData);
+      setSystemInfo(systemInfoData);
+      setActiveTemplate(templateData);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -36,9 +45,9 @@ export default function AdminDashboard() {
 
   return (
     <Stack spacing={3}>
-      <StatsCards />
-      <ErrorStatistics />
-      <SystemInfo />
+      <StatsCards stats={stats} />
+      <ErrorStatistics errorStats={errorStats} />
+      <SystemInfo systemInfo={systemInfo} activeTemplate={activeTemplate} />
     </Stack>
   )
 }

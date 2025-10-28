@@ -1,27 +1,7 @@
-import { useState, useEffect } from 'react';
 import { Box, Paper, Typography, Button, Stack } from '@mui/material';
-import { dashboardService, templateService } from '../../../services';
 import { TodayOutlined, TimerOutlined, TrendingUpOutlined } from '@mui/icons-material';
 
-export default function SystemInfo() {
-  const [systemInfo, setSystemInfo] = useState(null);
-  const [activeTemplate, setActiveTemplate] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [info, template] = await Promise.all([
-          dashboardService.getSystemInfo(),
-          templateService.getActiveTemplate()
-        ]);
-        setSystemInfo(info);
-        setActiveTemplate(template);
-      } catch (error) {
-        console.error('Error fetching system info:', error);
-      }
-    };
-    fetchData();
-  }, []);
+export default function SystemInfo({ systemInfo, activeTemplate }) {
 
   return (
     <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>

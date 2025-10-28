@@ -1,25 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Box, Grid } from '@mui/material';
+import { Box } from '@mui/material';
 import { FileCopyOutlined, CheckCircleOutline, ErrorOutlineOutlined, HourglassEmptyOutlined } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import StatCard from '../../shared/ui/StatCard';
-import { dashboardService } from '../../../services';
 
-export default function StatsCards() {
+export default function StatsCards({ stats = { total: 0, waiting: 0, passed: 0, needsFix: 0 } }) {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ total: 0, waiting: 0, passed: 0, needsFix: 0 });
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = await dashboardService.getAdminStats();
-        setStats(data);
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      }
-    };
-    fetchStats();
-  }, []);
 
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 3 }}>
