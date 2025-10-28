@@ -4,10 +4,12 @@ import { VisibilityOutlined, DescriptionOutlined, DownloadOutlined } from '@mui/
 import { useHeader } from '../../context/HeaderContext';
 import { renderAsync } from 'docx-preview';
 import { templateService } from '../../services';
+import Loading from '../../components/shared/ui/Loading';
 
 export default function TemplatePanduan() {
   const { setHeaderInfo } = useHeader();
   const [templates, setTemplates] = useState([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     fetchTemplates();
@@ -15,10 +17,13 @@ export default function TemplatePanduan() {
 
   const fetchTemplates = async () => {
     try {
+      setLoading(true);
       const data = await templateService.getActiveTemplate();
       if (data) setTemplates([data]);
     } catch (error) {
       console.error('Error fetching template:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,6 +40,8 @@ export default function TemplatePanduan() {
   }, [setHeaderInfo]);
 
   const activeTemplate = templates.find(t => t.isActive);
+
+  if (loading) return <Loading message="Memuat template..." />;
 
   return (
     <>

@@ -13,6 +13,7 @@ import { useHeader } from '../../context/HeaderContext';
 import { useSelector } from 'react-redux';
 import UploadFormCard from '../../components/mahasiswa/upload/UploadFormCard';
 import UploadInfoCard from '../../components/mahasiswa/upload/UploadInfoCard';
+import Loading from '../../components/shared/ui/Loading';
 import { validationService } from '../../services';
 
 export default function Upload() {
@@ -24,15 +25,19 @@ export default function Upload() {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [hasQueuedDoc, setHasQueuedDoc] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Check apakah user punya dokumen dalam antrian/diproses
   useEffect(() => {
     const checkQueuedDoc = async () => {
       try {
+        setLoading(true);
         const data = await validationService.getValidationsByUser(user);
         setHasQueuedDoc(data.some(v => v.status === 'Dalam Antrian' || v.status === 'Diproses'));
       } catch (error) {
         console.error('Error checking queued doc:', error);
+      } finally {
+        setLoading(false);
       }
     };
     if (user) checkQueuedDoc();
@@ -63,6 +68,8 @@ export default function Upload() {
   const handleUpload = () => {
     setUploadSuccess(true);
   };
+
+  if (loading) return <Loading message="Memuat halaman upload..." />;
 
   return (
     <Stack spacing={4}>

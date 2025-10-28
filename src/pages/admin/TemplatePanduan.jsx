@@ -25,6 +25,7 @@ import FormatRulesSection from '../../components/admin/template/FormatRulesSecti
 import SaveConfirmDialog from '../../components/admin/template/SaveConfirmDialog';
 import TemplatePreviewDialog from '../../components/admin/template/TemplatePreviewDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
+import Loading from '../../components/shared/ui/Loading';
 
 export default function TemplatePanduan() {
   const { setHeaderInfo } = useHeader();
@@ -276,6 +277,8 @@ export default function TemplatePanduan() {
 
 
   const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
+
+  if (loading) return <Loading message="Memuat template..." />;
 
   return (
     <>
