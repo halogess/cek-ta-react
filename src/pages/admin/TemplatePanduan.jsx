@@ -265,6 +265,9 @@ export default function TemplatePanduan() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState(null);
   const previewContainerRef = useRef(null);
+  const [minScore, setMinScore] = useState(80);
+  const [tempMinScore, setTempMinScore] = useState(80);
+  const [scoreChanged, setScoreChanged] = useState(false);
 
   useEffect(() => {
     setHeaderInfo({ title: 'Template Panduan' });
@@ -418,6 +421,12 @@ export default function TemplatePanduan() {
   const handleSaveChanges = () => {
     setSaveConfirmDialog(false);
     setHasChanges(false);
+    setShowSaveSuccess(true);
+  };
+
+  const handleSaveScore = () => {
+    setMinScore(tempMinScore);
+    setScoreChanged(false);
     setShowSaveSuccess(true);
   };
 
@@ -894,6 +903,60 @@ export default function TemplatePanduan() {
           })()}
         </DialogContent>
       </Dialog>
+
+      <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0', mt: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h5" fontWeight="bold">
+              Pengaturan Validasi
+            </Typography>
+            <Typography color="text.secondary" variant="body2">
+              Atur minimal skor kelulusan validasi dokumen
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={3} alignItems="center" sx={{ minWidth: 400 }}>
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2" color="text.secondary">Minimal Skor</Typography>
+                <Typography variant="h6" fontWeight="bold" color="primary.main">{tempMinScore}%</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="caption" color="text.secondary">0%</Typography>
+                <Box sx={{ flex: 1 }}>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={tempMinScore}
+                    onChange={(e) => {
+                      setTempMinScore(Number(e.target.value));
+                      setScoreChanged(Number(e.target.value) !== minScore);
+                    }}
+                    style={{
+                      width: '100%',
+                      height: '6px',
+                      borderRadius: '3px',
+                      outline: 'none',
+                      background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${tempMinScore}%, #E2E8F0 ${tempMinScore}%, #E2E8F0 100%)`,
+                      WebkitAppearance: 'none',
+                      cursor: 'pointer'
+                    }}
+                  />
+                </Box>
+                <Typography variant="caption" color="text.secondary">100%</Typography>
+              </Box>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<SaveOutlined />}
+              onClick={handleSaveScore}
+              disabled={!scoreChanged}
+            >
+              Update
+            </Button>
+          </Stack>
+        </Box>
+      </Paper>
 
       <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0', mt: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

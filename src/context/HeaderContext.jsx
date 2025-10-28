@@ -1,16 +1,7 @@
-// src/context/HeaderContext.jsx
+import { createContext, useState, useContext } from 'react';
 
-import 
-{
-  createContext,
-  useState,
-  useContext
-} from 'react';
-
-// Buat context
 const HeaderContext = createContext();
 
-// Buat Provider component
 export const HeaderProvider = ({ children }) => {
   const [headerInfo, setHeaderInfo] = useState({ title: '' });
 
@@ -21,5 +12,4 @@ export const HeaderProvider = ({ children }) => {
   );
 };
 
-// Buat custom hook untuk kemudahan penggunaan
 export const useHeader = () => useContext(HeaderContext);

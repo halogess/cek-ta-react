@@ -2,6 +2,9 @@ import { Paper, Box, Typography } from '@mui/material';
 import { WarningAmber } from '@mui/icons-material';
 
 export default function ValidationSummary({ errorCount, score }) {
+  const minPassScore = 80;
+  const isPass = score >= minPassScore;
+  
   return (
     <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '2px solid #FEF3C7', bgcolor: '#FFFBEB' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -12,6 +15,9 @@ export default function ValidationSummary({ errorCount, score }) {
           <Box>
             <Typography variant="h5" fontWeight="bold">{errorCount} Kesalahan Ditemukan</Typography>
             <Typography color="text.secondary">Dokumen memerlukan perbaikan sebelum dapat disetujui</Typography>
+            <Typography variant="body2" color="#92400E" sx={{ mt: 1, fontWeight: 500 }}>
+              Minimum skor untuk lolos: {minPassScore}%
+            </Typography>
           </Box>
         </Box>
         <Box sx={{ textAlign: 'right' }}>

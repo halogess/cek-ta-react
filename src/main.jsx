@@ -1,28 +1,23 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-
-// Impor komponen dan tema
 import CssBaseline from '@mui/material/CssBaseline';
-
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
-import { HeaderProvider } from './context/HeaderContext.jsx';
-
-// Impor Halaman
+import { HeaderProvider } from './context/HeaderContext';
 import './index.css';
-import App from './App.jsx';
-import Login from './pages/auth/Login.jsx';
-import MahasiswaDashboard from './pages/mahasiswa/Dashboard.jsx';
-import AdminDashboard from './pages/admin/Dashboard.jsx';
-import AdminTemplatePanduan from './pages/admin/TemplatePanduan.jsx';
-import MahasiswaTemplatePanduan from './pages/mahasiswa/TemplatePanduan.jsx';
-import AdminHistory from './pages/admin/History.jsx';
-import AdminDetailValidation from './pages/admin/DetailValidation.jsx';
-import NotFound from './pages/NotFound.jsx';
-import Upload from './pages/mahasiswa/Upload.jsx';
-import History from './pages/mahasiswa/History.jsx';
-import DetailValidation from './pages/mahasiswa/DetailValidation.jsx';
+import App from './App';
+import Login from './pages/auth/Login';
+import MahasiswaDashboard from './pages/mahasiswa/Dashboard';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminTemplatePanduan from './pages/admin/TemplatePanduan';
+import MahasiswaTemplatePanduan from './pages/mahasiswa/TemplatePanduan';
+import AdminHistory from './pages/admin/History';
+import AdminDetailValidation from './pages/admin/DetailValidation';
+import NotFound from './pages/NotFound';
+import Upload from './pages/mahasiswa/Upload';
+import History from './pages/mahasiswa/History';
+import DetailValidation from './pages/mahasiswa/DetailValidation';
 
 const router = createBrowserRouter([
   {

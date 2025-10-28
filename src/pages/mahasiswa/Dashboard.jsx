@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Stack } from '@mui/material';
+import { Stack, Alert, Typography } from '@mui/material';
 import { useHeader } from '../../context/HeaderContext';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -20,6 +20,16 @@ export default function MahasiswaDashboard() {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCancelSuccess, setShowCancelSuccess] = useState(false);
+  
+  const processingDoc = historyData.find(item => item.status === 'Diproses');
+  
+  const stats = {
+    total: historyData.length,
+    waiting: historyData.filter(v => v.status === 'Dalam Antrian' || v.status === 'Diproses').length,
+    cancelled: historyData.filter(v => v.status === 'Dibatalkan').length,
+    passed: historyData.filter(v => v.status === 'Lolos').length,
+    needsFix: historyData.filter(v => v.status === 'Tidak Lolos').length
+  };
 
   const handleCancelClick = (filename) => {
     setSelectedDoc(filename);
@@ -37,6 +47,7 @@ export default function MahasiswaDashboard() {
     // Logic untuk download sertifikat
     setShowSuccess(true);
   };
+  
   useEffect(() => {
     setHeaderInfo({
       title: 'Dashboard',
@@ -46,19 +57,20 @@ export default function MahasiswaDashboard() {
     };
   }, [setHeaderInfo]);
 
-  const stats = {
-    total: historyData.length,
-    passed: historyData.filter(v => v.status === 'Lolos').length,
-    needsFix: historyData.filter(v => v.status === 'Tidak Lolos').length
-  };
-
   return (
     <Stack spacing={3}>
-      <StatsCards totalValidations={stats.total.toString()} successCount={stats.passed.toString()} needsFixCount={stats.needsFix.toString()} />
+      {processingDoc && (
+        <Alert severity="info" sx={{ borderRadius: '12px' }}>
+          <Typography fontWeight="medium">Dokumen Sedang Diproses</Typography>
+          <Typography variant="body2">{processingDoc.filename} sedang dalam proses validasi. Anda akan menerima notifikasi setelah selesai.</Typography>
+        </Alert>
+      )}
+      
+      <StatsCards stats={stats} />
       
       <ValidationActions 
         onUpload={() => navigate('/mahasiswa/upload')} 
-        hasQueuedDoc={historyData.some(item => item.status === 'Dalam Antrian')} 
+        hasQueuedDoc={historyData.some(item => item.status === 'Dalam Antrian' || item.status === 'Diproses')} 
       />
       
       {historyData.length > 0 && (

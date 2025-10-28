@@ -3,7 +3,7 @@ import { Paper, Typography, Box, Stack, IconButton, Chip, Tooltip } from '@mui/m
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import { CheckCircleOutline, ErrorOutline, HourglassEmptyOutlined, CancelOutlined, DownloadOutlined, CheckOutlined, BlockOutlined } from '@mui/icons-material';
 
-const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload, onConfirm, showCancelButton = true, showConfirmButton = true, additionalInfo, isAdminView = false, judulTA, nama, nrp, jurusan, skor }) => (
+const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload, showCancelButton = true, additionalInfo, isAdminView = false, judulTA, nama, nrp, jurusan, skor }) => (
   <Paper
     elevation={0}
     onClick={onDetail}
@@ -65,10 +65,10 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
       <Box textAlign="right" sx={{ width: 100 }}>
         {isAdminView ? (
           <>
-            <Typography fontWeight="600" variant="body2">Skor: {skor}</Typography>
-            <Typography variant="caption" color="text.secondary">{errorCount} Kesalahan</Typography>
+            {skor !== null && <Typography fontWeight="600" variant="body2">Skor: {skor}</Typography>}
+            {errorCount !== null && <Typography variant="caption" color="text.secondary">{errorCount} Kesalahan</Typography>}
           </>
-        ) : status === 'Selesai' && (
+        ) : (status === 'Lolos' || status === 'Tidak Lolos') && errorCount !== null && (
           <>
             <Typography fontWeight="600" variant="body2">{errorCount} Kesalahan</Typography>
             <Typography variant="caption" color="text.secondary">Ditemukan</Typography>
@@ -76,7 +76,13 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
         )}
       </Box>
       <Tooltip 
-        title={status === 'Dalam Antrian' ? 'Dokumen sedang menunggu diproses' : status === 'Menunggu Konfirmasi' ? 'Struktur dokumen telah diidentifikasi, silahkan konfirmasi jika sudah sesuai' : status === 'Dibatalkan' ? 'Validasi dokumen telah dibatalkan' : 'Validasi dokumen selesai'} 
+        title={
+          status === 'Dalam Antrian' ? 'Dokumen sedang menunggu diproses' : 
+          status === 'Diproses' ? 'Sistem sedang memvalidasi dokumen' : 
+          status === 'Dibatalkan' ? 'Validasi dokumen telah dibatalkan' : 
+          status === 'Lolos' ? 'Dokumen lulus validasi' :
+          status === 'Tidak Lolos' ? 'Dokumen tidak lulus validasi' : 'Validasi dokumen selesai'
+        } 
         arrow
         componentsProps={{
           tooltip: {
@@ -88,7 +94,13 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
         }}
       >
         <Chip 
-          icon={status === 'Selesai' ? <CheckCircleOutline /> : status === 'Menunggu Konfirmasi' ? <ErrorOutline /> : status === 'Dibatalkan' ? <BlockOutlined /> : <HourglassEmptyOutlined />}
+          icon={
+            status === 'Lolos' ? <CheckCircleOutline /> : 
+            status === 'Tidak Lolos' ? <ErrorOutline /> :
+            status === 'Diproses' ? <HourglassEmptyOutlined /> :
+            status === 'Dibatalkan' ? <BlockOutlined /> : 
+            <HourglassEmptyOutlined />
+          }
           label={status} 
           color={statusColor} 
           size="small" 
@@ -96,9 +108,21 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
           sx={{ 
             width: 200,
             fontWeight: 500,
-            bgcolor: statusColor === 'primary' ? '#DBEAFE' : statusColor === 'warning' ? '#FEF3C7' : statusColor === 'error' ? '#FEE2E2' : '#D1FAE5',
-            color: statusColor === 'primary' ? '#1E40AF' : statusColor === 'warning' ? '#92400E' : statusColor === 'error' ? '#991B1B' : '#065F46',
-            borderColor: statusColor === 'primary' ? '#3B82F6' : statusColor === 'warning' ? '#F59E0B' : statusColor === 'error' ? '#EF4444' : '#10B981'
+            bgcolor: 
+              statusColor === 'info' ? '#DBEAFE' : 
+              statusColor === 'warning' ? '#FEF3C7' : 
+              statusColor === 'error' ? '#FEE2E2' : 
+              statusColor === 'success' ? '#D1FAE5' : '#F3F4F6',
+            color: 
+              statusColor === 'info' ? '#1E40AF' : 
+              statusColor === 'warning' ? '#92400E' : 
+              statusColor === 'error' ? '#991B1B' : 
+              statusColor === 'success' ? '#065F46' : '#6B7280',
+            borderColor: 
+              statusColor === 'info' ? '#3B82F6' : 
+              statusColor === 'warning' ? '#F59E0B' : 
+              statusColor === 'error' ? '#EF4444' : 
+              statusColor === 'success' ? '#10B981' : '#D1D5DB'
           }} 
         />
       </Tooltip>
@@ -110,14 +134,7 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
             </IconButton>
           </Tooltip>
         )}
-        {status === 'Menunggu Konfirmasi' && showConfirmButton && (
-          <Tooltip title="Konfirmasi" arrow>
-            <IconButton size="small" color="success" onClick={(e) => { e.stopPropagation(); onConfirm(); }}>
-              <CheckOutlined />
-            </IconButton>
-          </Tooltip>
-        )}
-        {(status === 'Selesai' || status === 'Lolos') && isPassedValidation && (
+        {status === 'Lolos' && isPassedValidation && (
           <Tooltip title="Download Sertifikat" arrow>
             <IconButton size="small" color="primary" onClick={(e) => { e.stopPropagation(); onDownload(); }}>
               <DownloadOutlined />

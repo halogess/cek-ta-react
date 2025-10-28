@@ -18,9 +18,10 @@ export default function DetailValidation() {
   const [showCancelSuccess, setShowCancelSuccess] = useState(false);
   
   const validation = getValidationById(id);
-  const documentStatus = validation?.status === 'Lolos' || validation?.status === 'Tidak Lolos' ? 'Selesai' : validation?.status || 'Selesai';
+  const documentStatus = validation?.status || 'Selesai';
   const isPassedValidation = validation?.isPassedValidation || false;
   const queuePosition = validation?.queuePosition || 0;
+  const hasValidationData = validation?.errorCount !== null && validation?.skor !== null;
 
   useEffect(() => {
     setHeaderInfo({ title: 'Detail Validasi' });
@@ -66,36 +67,34 @@ export default function DetailValidation() {
         </Stack>
       </Box>
 
-      {documentStatus === 'Selesai' && (
-        <>
-          {isPassedValidation && (
-            <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #10B981', bgcolor: '#ECFDF5' }}>
-              <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h6" fontWeight="600" color="#065F46" gutterBottom>
-                    Selamat! Dokumen Anda Lulus Validasi
-                  </Typography>
-                  <Typography variant="body2" color="#047857">
-                    Dokumen Anda telah memenuhi semua persyaratan format. Unduh sertifikat validasi Anda.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  color="success"
-                  startIcon={<DownloadOutlined />}
-                >
-                  Download Sertifikat
-                </Button>
-              </Stack>
-            </Paper>
-          )}
-          
-          {!isPassedValidation && <ValidationSummary errorCount={validation?.errorCount || 0} score={validation?.skor || 0} />}
-        </>
+      {documentStatus === 'Lolos' && (
+        <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #10B981', bgcolor: '#ECFDF5' }}>
+          <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+            <Box>
+              <Typography variant="h6" fontWeight="600" color="#065F46" gutterBottom>
+                Selamat! Dokumen Anda Lulus Validasi
+              </Typography>
+              <Typography variant="body2" color="#047857">
+                Dokumen Anda telah memenuhi semua persyaratan format. Unduh sertifikat validasi Anda.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<DownloadOutlined />}
+            >
+              Download Sertifikat
+            </Button>
+          </Stack>
+        </Paper>
+      )}
+      
+      {documentStatus === 'Tidak Lolos' && (
+        <ValidationSummary errorCount={validation?.errorCount || 0} score={validation?.skor || 0} />
       )}
 
       {/* Document Structure */}
-      {documentStatus !== 'Dalam Antrian' && documentStatus !== 'Dibatalkan' && (
+      {hasValidationData && documentStatus !== 'Dibatalkan' && (
       <Paper elevation={0} sx={{ p: 2.5, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <DescriptionOutlined color="primary" sx={{ fontSize: 20 }} />
@@ -219,7 +218,7 @@ export default function DetailValidation() {
       )}
 
       {documentStatus === 'Dalam Antrian' && (
-        <Paper elevation={0} sx={{ p: 4, borderRadius: '12px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
+        <Paper elevation={0} sx={{ p: 4, borderRadius: '12px', border: '1px solid #DBEAFE', bgcolor: '#EFF6FF', textAlign: 'center' }}>
           <HourglassEmptyOutlined sx={{ fontSize: 64, color: '#3B82F6', mb: 2 }} />
           <Typography variant="h6" fontWeight="600" gutterBottom>
             Dokumen Dalam Antrian
@@ -238,29 +237,19 @@ export default function DetailValidation() {
         </Paper>
       )}
 
-      {documentStatus === 'Menunggu Konfirmasi' && (
-        <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-          <Stack spacing={2}>
-            <Box>
-              <Typography variant="h6" fontWeight="600" gutterBottom>
-                Konfirmasi Struktur Dokumen
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Struktur dokumen telah diidentifikasi. Silakan konfirmasi jika sudah sesuai untuk melanjutkan proses validasi.
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              startIcon={<CheckOutlined />}
-              sx={{ alignSelf: 'flex-start' }}
-            >
-              Konfirmasi Struktur
-            </Button>
-          </Stack>
+      {documentStatus === 'Diproses' && (
+        <Paper elevation={0} sx={{ p: 4, borderRadius: '12px', border: '1px solid #FEF3C7', bgcolor: '#FFFBEB', textAlign: 'center' }}>
+          <HourglassEmptyOutlined sx={{ fontSize: 64, color: '#F59E0B', mb: 2 }} />
+          <Typography variant="h6" fontWeight="600" gutterBottom>
+            Dokumen Sedang Diproses
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Sistem sedang memvalidasi dokumen Anda. Mohon tunggu beberapa saat.
+          </Typography>
         </Paper>
       )}
 
-      {documentStatus === 'Selesai' && (
+      {hasValidationData && (
         <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', lg: 'row' }, alignItems: 'stretch' }}>
         {/* Daftar Kesalahan dengan Rekomendasi */}
         <Box sx={{ flex: 1, width: '100%' }}>

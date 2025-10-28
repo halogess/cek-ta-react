@@ -1,57 +1,54 @@
-import { Box, Button } from '@mui/material';
-import { CheckCircleOutline, DescriptionOutlined, TaskAltOutlined, ErrorOutlineOutlined } from '@mui/icons-material';
+import { Box, Grid } from '@mui/material';
+import { FileCopyOutlined, CheckCircleOutline, ErrorOutlineOutlined, HourglassEmptyOutlined } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import StatCard from '../../shared/ui/StatCard';
-import { activeTemplate, getStatistics } from '../../../data/mockData';
+import { getAllValidations } from '../../../data/mockData';
 
 export default function StatsCards() {
   const navigate = useNavigate();
-  const stats = getStatistics();
+  const allValidations = getAllValidations();
+  
+  const stats = {
+    waiting: allValidations.filter(v => v.status === 'Dalam Antrian' || v.status === 'Diproses').length,
+    passed: allValidations.filter(v => v.status === 'Lolos').length,
+    needsFix: allValidations.filter(v => v.status === 'Tidak Lolos').length
+  };
+  stats.total = stats.waiting + stats.passed + stats.needsFix;
 
   return (
-    <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-      <Box sx={{ flex: '1 1 calc(25% - 18px)', minWidth: '200px' }}>
-        <StatCard 
-          title="Versi Panduan Aktif" 
-          value={activeTemplate.name} 
-          icon={<DescriptionOutlined />} 
-          iconColor="info.main"
-          action={
-            <Button 
-              variant="outlined" 
-              size="small" 
-              onClick={() => navigate('/admin/template')}
-              sx={{ mt: 1, fontSize: '0.75rem' }}
-            >
-              Lihat Detail
-            </Button>
-          }
-        />
-      </Box>
-      <Box sx={{ flex: '1 1 calc(25% - 18px)', minWidth: '200px' }}>
-        <StatCard 
-          title="Total Validasi" 
-          value={stats.total.toString()} 
-          icon={<CheckCircleOutline />} 
-          iconColor="primary.main" 
-        />
-      </Box>
-      <Box sx={{ flex: '1 1 calc(25% - 18px)', minWidth: '200px' }}>
-        <StatCard 
-          title="Lolos Validasi" 
-          value={stats.passed.toString()} 
-          icon={<TaskAltOutlined />} 
-          iconColor="success.main" 
-        />
-      </Box>
-      <Box sx={{ flex: '1 1 calc(25% - 18px)', minWidth: '200px' }}>
-        <StatCard 
-          title="Perlu Perbaikan" 
-          value={stats.needsFix.toString()} 
-          icon={<ErrorOutlineOutlined />} 
-          iconColor="error.main" 
-        />
-      </Box>
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 3 }}>
+      <StatCard 
+        title="Total Validasi" 
+        value={stats.total.toString()} 
+        subtitle="Dokumen yang divalidasi"
+        icon={<FileCopyOutlined />} 
+        iconColor="#64748B"
+        onClick={() => navigate('/admin/history')}
+      />
+      <StatCard 
+        title="Menunggu" 
+        value={stats.waiting.toString()} 
+        subtitle="Sedang diproses sistem"
+        icon={<HourglassEmptyOutlined />} 
+        iconColor="#3B82F6"
+        onClick={() => navigate('/admin/history?status=Menunggu')}
+      />
+      <StatCard 
+        title="Lolos" 
+        value={stats.passed.toString()} 
+        subtitle="Memenuhi standar format"
+        icon={<CheckCircleOutline />} 
+        iconColor="#10B981"
+        onClick={() => navigate('/admin/history?status=Lolos')}
+      />
+      <StatCard 
+        title="Tidak Lolos" 
+        value={stats.needsFix.toString()} 
+        subtitle="Perlu diperbaiki"
+        icon={<ErrorOutlineOutlined />} 
+        iconColor="#EF4444"
+        onClick={() => navigate('/admin/history?status=Tidak Lolos')}
+      />
     </Box>
   );
 }

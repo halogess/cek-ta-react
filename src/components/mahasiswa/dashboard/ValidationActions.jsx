@@ -19,7 +19,7 @@ export default function ValidationActions({ onUpload, hasQueuedDoc }) {
       </Button>
       {hasQueuedDoc && (
         <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-          Anda memiliki dokumen dalam antrian. Batalkan terlebih dahulu untuk upload dokumen baru.
+          Anda memiliki dokumen dalam antrian atau sedang diproses. Batalkan dokumen dalam antrian atau tunggu hingga proses selesai.
         </Typography>
       )}
     </Paper>

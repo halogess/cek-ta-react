@@ -50,9 +50,9 @@ export const mockValidations = [
     date: '2024-01-20',
     size: '2.4 MB',
     status: 'Dalam Antrian',
-    statusColor: 'primary',
-    errorCount: 0,
-    skor: 0,
+    statusColor: 'info',
+    errorCount: null,
+    skor: null,
     isPassedValidation: false,
     queuePosition: 3
   },
@@ -118,9 +118,9 @@ export const mockValidations = [
     date: '2024-01-05',
     size: '1.8 MB',
     status: 'Dibatalkan',
-    statusColor: 'error',
-    errorCount: 0,
-    skor: 0,
+    statusColor: 'default',
+    errorCount: null,
+    skor: null,
     isPassedValidation: false,
     queuePosition: 0
   },
@@ -152,10 +152,10 @@ export const mockValidations = [
     filename: 'BAB_2_Tinjauan_Pustaka.docx',
     date: '2024-01-14',
     size: '2.2 MB',
-    status: 'Menunggu Konfirmasi',
+    status: 'Diproses',
     statusColor: 'warning',
-    errorCount: 2,
-    skor: 0,
+    errorCount: null,
+    skor: null,
     isPassedValidation: false,
     queuePosition: 0
   },
@@ -394,9 +394,9 @@ export const mockValidations = [
     date: '2024-01-16',
     size: '1.8 MB',
     status: 'Dibatalkan',
-    statusColor: 'error',
-    errorCount: 0,
-    skor: 0,
+    statusColor: 'default',
+    errorCount: null,
+    skor: null,
     isPassedValidation: false,
     queuePosition: 0
   },
@@ -410,10 +410,10 @@ export const mockValidations = [
     filename: 'Daftar_Pustaka.docx',
     date: '2024-01-11',
     size: '1.2 MB',
-    status: 'Menunggu Konfirmasi',
+    status: 'Diproses',
     statusColor: 'warning',
-    errorCount: 1,
-    skor: 0,
+    errorCount: null,
+    skor: null,
     isPassedValidation: false,
     queuePosition: 0
   },
@@ -492,7 +492,7 @@ export const getStatistics = () => {
 };
 
 export const getStatisticsByUser = (nrp) => {
-  const userValidations = mockValidations.filter(v => v.nrp === nrp);
+  const userValidations = mockValidations.filter(v => v.nrp === nrp && (v.status === 'Lolos' || v.status === 'Tidak Lolos' || v.status === 'Dalam Antrian' || v.status === 'Diproses'));
   const passedValidations = userValidations.filter(v => v.status === 'Lolos');
   const needsFixValidations = userValidations.filter(v => v.status === 'Tidak Lolos');
   

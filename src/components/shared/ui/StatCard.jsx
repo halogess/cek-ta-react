@@ -1,9 +1,10 @@
 import React from 'react';
 import { Paper, Typography, Box } from '@mui/material';
 
-const StatCard = ({ title, value, subtitle, icon, iconColor, action }) => (
+const StatCard = ({ title, value, subtitle, icon, iconColor, action, onClick }) => (
   <Paper
     elevation={0}
+    onClick={onClick}
     sx={{
       p: 2.5,
       display: 'flex',
@@ -13,7 +14,14 @@ const StatCard = ({ title, value, subtitle, icon, iconColor, action }) => (
       border: '1px solid #E2E8F0',
       height: '100%',
       minHeight: '120px',
-      width: '100%'
+      width: '100%',
+      cursor: onClick ? 'pointer' : 'default',
+      transition: 'all 0.2s',
+      '&:hover': onClick ? {
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        borderColor: '#CBD5E1',
+        transform: 'translateY(-2px)'
+      } : {}
     }}
   >
     <Box sx={{ flex: 1, minWidth: 0, pr: 2 }}>

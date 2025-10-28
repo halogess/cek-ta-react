@@ -1,5 +1,5 @@
 
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
     Box,
     Drawer,
@@ -16,17 +16,14 @@ import {
     UploadOutlined,
     HistoryOutlined,
     FactCheckOutlined,
-    LogoutOutlined,
     DescriptionOutlined,
-    SettingsOutlined,
 } from '@mui/icons-material';
 
-import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../../../redux/userSlice';
+import { useSelector } from 'react-redux';
 
 const drawerWidth = 280;
 
-// KUNCI 1: Salin komponen Wave ke sini
+
 const Wave = () => (
     <Box
         sx={{
@@ -74,21 +71,11 @@ const adminMenuItems = [
 ];
 
 const Sidebar = ({ isMobile, mobileOpen, desktopOpen, onDrawerToggle }) => {
-
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const { role, user } = useSelector((state) => state.user);
-
-    // Tentukan menu mana yang akan ditampilkan
+    const { role } = useSelector((state) => state.user);
     const menuItems = role === 'admin' ? adminMenuItems : mahasiswaMenuItems;
 
-    const handleLogout = () => {
-        dispatch(logout());
-        navigate('/'); // Kembali ke halaman login setelah logout
-    };
-
     const drawerContent = (
-        // KUNCI 2: Jadikan Box ini sebagai container utama dengan positioning
+
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflow: 'hidden' }}>
             <Wave />
             <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', flexGrow: 1, zIndex: 1 }}>
@@ -175,7 +162,7 @@ const Sidebar = ({ isMobile, mobileOpen, desktopOpen, onDrawerToggle }) => {
                     '& .MuiDrawer-paper': {
                         boxSizing: 'border-box',
                         width: drawerWidth,
-                        // KUNCI 3: Ganti backgroundColor menjadi background gradient
+
                         background: 'linear-gradient(160deg, #111827 0%, #1E40AF 100%)',
                         borderRight: 'none',
                     },

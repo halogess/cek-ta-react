@@ -1,6 +1,4 @@
-// src/App.jsx
-
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import {
   Box, AppBar, Toolbar, IconButton, useTheme, useMediaQuery,
@@ -11,7 +9,7 @@ import PersonOutlineOutlined from '@mui/icons-material/PersonOutlineOutlined';
 import LogoutOutlined from '@mui/icons-material/LogoutOutlined';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from './redux/userSlice';
-import { useHeader } from './context/HeaderContext.jsx';
+import { useHeader } from './context/HeaderContext';
 import Sidebar from './components/shared/layout/Sidebar';
 import { mockUsers } from './data/mockData';
 
@@ -53,7 +51,7 @@ function App() {
           ml: { md: desktopOpen ? `${drawerWidth}px` : 0 },
           backgroundColor: 'background.paper',
           borderBottom: '1px solid #E2E8F0',
-          transition: 'all 0.3s ease',
+          transition: 'width 0.3s ease, margin-left 0.3s ease',
         }}
       >
         <Toolbar>
@@ -75,10 +73,10 @@ function App() {
           
           <Box sx={{ flexGrow: 1 }} />
 
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ whiteSpace: 'nowrap' }}>
             <Button
               startIcon={<PersonOutlineOutlined />}
-              sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 'medium' }}
+              sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 'medium', whiteSpace: 'nowrap' }}
             >
               {displayName}
             </Button>
@@ -86,7 +84,7 @@ function App() {
               variant="outlined"
               startIcon={<LogoutOutlined />}
               onClick={handleLogout}
-              sx={{ textTransform: 'capitalize', fontWeight: 'medium' }}
+              sx={{ textTransform: 'capitalize', fontWeight: 'medium', whiteSpace: 'nowrap' }}
             >
               Keluar
             </Button>

@@ -14,7 +14,7 @@ export default function Upload() {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   
-  const hasQueuedDoc = getValidationsByUser(user).some(v => v.status === 'Dalam Antrian');
+  const hasQueuedDoc = getValidationsByUser(user).some(v => v.status === 'Dalam Antrian' || v.status === 'Diproses');
 
   // Mengatur judul header saat komponen dimuat
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function Upload() {
           {hasQueuedDoc && (
             <Alert severity="error" sx={{ borderRadius: '12px' }}>
               <Typography fontWeight="medium">Tidak dapat mengunggah dokumen baru</Typography>
-              <Typography variant="body2">Anda memiliki dokumen dalam antrian. Batalkan terlebih dahulu untuk upload dokumen baru.</Typography>
+              <Typography variant="body2">Anda memiliki dokumen dalam antrian atau sedang diproses. Batalkan dokumen dalam antrian atau tunggu hingga proses selesai.</Typography>
             </Alert>
           )}
 
