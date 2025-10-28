@@ -4,74 +4,583 @@
 
 ### 🔐 Authentication (`authService.js`)
 
-| Endpoint | Method | Digunakan di | Deskripsi |
-|----------|--------|--------------|-----------|
-| `/auth/login` | POST | `Login.jsx` | Login user (admin/mahasiswa) |
-| `/auth/logout` | POST | `Layout` | Logout user |
-| `/auth/me` | GET | - | Get current user info |
+#### POST `/auth/login`
+Login user (admin/mahasiswa)
+
+**Digunakan di:** `Login.jsx`
+
+**Request:**
+```json
+{
+  "nrp": "5025201001",
+  "password": "password123"
+}
+```
+
+**Response:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "nrp": "5025201001",
+    "role": "mahasiswa"
+  }
+}
+```
+
+---
+
+#### POST `/auth/logout`
+Logout user
+
+**Digunakan di:** `Layout`
+
+**Response:**
+```json
+{
+  "message": "Logout successful"
+}
+```
+
+---
+
+#### GET `/auth/me`
+Get current user info
+
+**Response:**
+```json
+{
+  "nrp": "5025201001",
+  "nama": "Ahmad Ridwan",
+  "role": "mahasiswa",
+  "jurusan": "Teknik Informatika"
+}
+```
 
 ---
 
 ### 📄 Validations (`validationService.js`)
 
-| Endpoint | Method | Digunakan di | Deskripsi |
-|----------|--------|--------------|-----------|
-| `/validations` | GET | `admin/History.jsx` | Get semua validasi (admin) |
-| `/validations/user/{userId}` | GET | `mahasiswa/Dashboard.jsx`<br>`mahasiswa/History.jsx`<br>`mahasiswa/Upload.jsx` | Get validasi by user |
-| `/validations/{id}` | GET | `DetailValidation.jsx` | Get detail validasi by ID |
-| `/validations/upload` | POST | `Upload.jsx` | Upload dokumen untuk validasi |
-| `/validations/{id}/cancel` | PUT | `mahasiswa/Dashboard.jsx`<br>`mahasiswa/History.jsx` | Batalkan validasi |
-| `/validations/{id}/certificate` | GET | `Dashboard.jsx`<br>`History.jsx` | Download sertifikat (blob) |
-| `/validations/{id}/errors` | GET | `DetailValidation.jsx` | Get daftar error validasi |
-| `/validations/{id}/structure` | GET | `DetailValidation.jsx` | Get struktur dokumen |
+#### GET `/validations`
+Get semua validasi (admin)
+
+**Digunakan di:** `admin/History.jsx`
+
+**Query Params:** `?status=Lolos&prodi=Teknik Informatika&startDate=2024-01-01&endDate=2024-12-31&search=Ahmad&sort=terbaru`
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "nrp": "5025201001",
+    "nama": "Ahmad Ridwan",
+    "jurusan": "Teknik Informatika",
+    "judulTA": "Implementasi Machine Learning untuk Prediksi Cuaca",
+    "filename": "Proposal_TA_2024.docx",
+    "date": "2024-01-20",
+    "size": "2.4 MB",
+    "status": "Dalam Antrian",
+    "statusColor": "info",
+    "errorCount": null,
+    "skor": null,
+    "isPassedValidation": false,
+    "queuePosition": 3
+  }
+]
+```
+
+---
+
+#### GET `/validations/user/{userId}`
+Get validasi by user
+
+**Digunakan di:** `mahasiswa/Dashboard.jsx`, `mahasiswa/History.jsx`, `mahasiswa/Upload.jsx`
+
+**Response:** Same as `/validations` (filtered by user)
+
+---
+
+#### GET `/validations/{id}`
+Get detail validasi by ID
+
+**Digunakan di:** `DetailValidation.jsx`
+
+**Response:**
+```json
+{
+  "id": 1,
+  "userId": 1,
+  "nrp": "5025201001",
+  "nama": "Ahmad Ridwan",
+  "jurusan": "Teknik Informatika",
+  "judulTA": "Implementasi Machine Learning untuk Prediksi Cuaca",
+  "filename": "Proposal_TA_2024.docx",
+  "date": "2024-01-20",
+  "size": "2.4 MB",
+  "status": "Lolos",
+  "statusColor": "success",
+  "errorCount": 0,
+  "skor": 100,
+  "isPassedValidation": true
+}
+```
+
+---
+
+#### POST `/validations/upload`
+Upload dokumen untuk validasi
+
+**Digunakan di:** `Upload.jsx`
+
+**Request:** FormData
+```
+file: [File]
+metadata: {"judulTA": "Judul TA", "nrp": "5025201001"}
+```
+
+**Response:**
+```json
+{
+  "id": 123,
+  "status": "Dalam Antrian",
+  "message": "Document uploaded successfully"
+}
+```
+
+---
+
+#### PUT `/validations/{id}/cancel`
+Batalkan validasi
+
+**Digunakan di:** `mahasiswa/Dashboard.jsx`, `mahasiswa/History.jsx`
+
+**Response:**
+```json
+{
+  "message": "Validation cancelled"
+}
+```
+
+---
+
+#### GET `/validations/{id}/certificate`
+Download sertifikat
+
+**Digunakan di:** `Dashboard.jsx`, `History.jsx`
+
+**Response:** Blob (PDF file)
+
+---
+
+#### GET `/validations/{id}/errors`
+Get daftar error validasi
+
+**Digunakan di:** `DetailValidation.jsx`
+
+**Response:**
+```json
+[
+  {
+    "category": "Font",
+    "severity": "Tinggi",
+    "title": "Font tidak sesuai. Menggunakan Arial, seharusnya Times New Roman",
+    "location": "Subbab 1.2.1, Halaman 3, Paragraf 2",
+    "steps": [
+      "Pilih seluruh teks di subbab 1.2.1 halaman 3 paragraf 2",
+      "Ubah font menjadi Times New Roman ukuran 12pt"
+    ],
+    "tips": "Gunakan fitur Find & Replace di Microsoft Word"
+  }
+]
+```
+
+---
+
+#### GET `/validations/{id}/structure`
+Get struktur dokumen
+
+**Digunakan di:** `DetailValidation.jsx`
+
+**Response:**
+```json
+[
+  {
+    "chapter": "BAB I PENDAHULUAN",
+    "pengantarStats": { "Paragraf": 2 },
+    "sections": [
+      {
+        "title": "1.1 Latar Belakang",
+        "stats": {
+          "Paragraf": 45,
+          "Footnote": 2,
+          "Judul": 3,
+          "Tabel": 1,
+          "Gambar": 1
+        }
+      }
+    ],
+    "penutupStats": { "Paragraf": 1 }
+  }
+]
+```
 
 ---
 
 ### 📑 Templates (`templateService.js`)
 
-| Endpoint | Method | Digunakan di | Deskripsi |
-|----------|--------|--------------|-----------|
-| `/templates` | GET | `admin/TemplatePanduan.jsx` | Get semua template |
-| `/templates/active` | GET | `mahasiswa/TemplatePanduan.jsx`<br>`admin/SystemInfo.jsx` | Get template aktif |
-| `/templates/{id}` | GET | - | Get template by ID |
-| `/templates/upload` | POST | `admin/TemplatePanduan.jsx` | Upload template baru |
-| `/templates/{id}` | PUT | `admin/TemplatePanduan.jsx` | Update template |
-| `/templates/{id}` | DELETE | `admin/TemplatePanduan.jsx` | Delete template |
-| `/templates/{id}/activate` | PUT | `admin/TemplatePanduan.jsx` | Aktifkan template |
-| `/templates/{id}/rules` | PUT | `admin/TemplatePanduan.jsx` | Update format rules |
-| `/templates/{id}/download` | GET | `TemplatePanduan.jsx` | Download template (blob) |
+#### GET `/templates`
+Get semua template
+
+**Digunakan di:** `admin/TemplatePanduan.jsx`
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Panduan_TA_2024.docx",
+    "version": "2025.1",
+    "rules": 70,
+    "date": "2024-01-15",
+    "isActive": true,
+    "fileUrl": "/templates/[TEMPLATE] BUKU TA - TESIS.docx",
+    "formatRules": {
+      "page_settings": [
+        {
+          "id": "a4_portrait",
+          "description": "A4 Portrait (Dokumen Utama)",
+          "rules": [
+            { "value": "Paper Size: A4", "enabled": true },
+            { "value": "Orientation: Portrait", "enabled": true },
+            { "value": "Margin Top: 4cm", "enabled": true }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "id": "judul_bab",
+          "name": "Judul Bab",
+          "rules": [
+            { "value": "Font: Times New Roman, 16pt, Bold", "enabled": true },
+            { "value": "Case: Uppercase", "enabled": true }
+          ]
+        }
+      ]
+    }
+  }
+]
+```
+
+---
+
+#### GET `/templates/active`
+Get template aktif
+
+**Digunakan di:** `mahasiswa/TemplatePanduan.jsx`, `admin/SystemInfo.jsx`
+
+**Response:** Same as single template object from `/templates`
+
+---
+
+#### GET `/templates/{id}`
+Get template by ID
+
+**Response:** Same as single template object
+
+---
+
+#### POST `/templates/upload`
+Upload template baru
+
+**Digunakan di:** `admin/TemplatePanduan.jsx`
+
+**Request:** FormData
+```
+file: [File]
+```
+
+**Response:**
+```json
+{
+  "id": 2,
+  "name": "Template_1234567890.docx",
+  "message": "Template uploaded successfully"
+}
+```
+
+---
+
+#### PUT `/templates/{id}`
+Update template
+
+**Digunakan di:** `admin/TemplatePanduan.jsx`
+
+**Request:**
+```json
+{
+  "name": "Panduan_TA_2025.docx",
+  "version": "2025.2"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Template updated"
+}
+```
+
+---
+
+#### DELETE `/templates/{id}`
+Delete template
+
+**Digunakan di:** `admin/TemplatePanduan.jsx`
+
+**Response:**
+```json
+{
+  "message": "Deleted successfully"
+}
+```
+
+---
+
+#### PUT `/templates/{id}/activate`
+Aktifkan template
+
+**Digunakan di:** `admin/TemplatePanduan.jsx`
+
+**Response:**
+```json
+{
+  "message": "Template activated"
+}
+```
+
+---
+
+#### PUT `/templates/{id}/rules`
+Update format rules
+
+**Digunakan di:** `admin/TemplatePanduan.jsx`
+
+**Request:**
+```json
+{
+  "formatRules": {
+    "page_settings": [...],
+    "components": [...]
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Rules updated"
+}
+```
+
+---
+
+#### GET `/templates/{id}/download`
+Download template
+
+**Digunakan di:** `TemplatePanduan.jsx`
+
+**Response:** Blob (DOCX file)
 
 ---
 
 ### 📊 Dashboard (`dashboardService.js`)
 
-| Endpoint | Method | Digunakan di | Deskripsi |
-|----------|--------|--------------|-----------|
-| `/dashboard/admin/stats` | GET | `admin/StatsCards.jsx` | Get statistik admin |
-| `/dashboard/mahasiswa/{userId}/stats` | GET | - | Get statistik mahasiswa |
-| `/dashboard/admin/error-stats` | GET | `admin/ErrorStatistics.jsx` | Get statistik error |
-| `/dashboard/admin/system-info` | GET | `admin/SystemInfo.jsx` | Get info sistem |
+#### GET `/dashboard/admin/stats`
+Get statistik admin
+
+**Digunakan di:** `admin/StatsCards.jsx`
+
+**Response:**
+```json
+{
+  "total": 25,
+  "waiting": 3,
+  "passed": 15,
+  "needsFix": 7
+}
+```
+
+---
+
+#### GET `/dashboard/mahasiswa/{userId}/stats`
+Get statistik mahasiswa
+
+**Response:**
+```json
+{
+  "total": 5,
+  "waiting": 1,
+  "cancelled": 1,
+  "passed": 2,
+  "needsFix": 1
+}
+```
+
+---
+
+#### GET `/dashboard/admin/error-stats`
+Get statistik error
+
+**Digunakan di:** `admin/ErrorStatistics.jsx`
+
+**Response:**
+```json
+[
+  {
+    "name": "Format Font",
+    "count": 234,
+    "percentage": 35
+  },
+  {
+    "name": "Spasi Paragraf",
+    "count": 189,
+    "percentage": 28
+  }
+]
+```
+
+---
+
+#### GET `/dashboard/admin/system-info`
+Get info sistem
+
+**Digunakan di:** `admin/SystemInfo.jsx`
+
+**Response:**
+```json
+{
+  "todayValidations": 47,
+  "avgTime": 3.2,
+  "successRate": 71.5
+}
+```
 
 ---
 
 ### ⚙️ Settings (`settingsService.js`)
 
-| Endpoint | Method | Digunakan di | Deskripsi |
-|----------|--------|--------------|-----------|
-| `/settings/min-score` | GET | `admin/TemplatePanduan.jsx` | Get minimal skor |
-| `/settings/min-score` | PUT | `admin/TemplatePanduan.jsx` | Update minimal skor |
-| `/settings` | GET | - | Get semua settings |
-| `/settings` | PUT | - | Update settings |
+#### GET `/settings/min-score`
+Get minimal skor
+
+**Digunakan di:** `admin/TemplatePanduan.jsx`
+
+**Response:**
+```json
+{
+  "score": 80
+}
+```
+
+---
+
+#### PUT `/settings/min-score`
+Update minimal skor
+
+**Digunakan di:** `admin/TemplatePanduan.jsx`
+
+**Request:**
+```json
+{
+  "score": 85
+}
+```
+
+**Response:**
+```json
+{
+  "score": 85
+}
+```
+
+---
+
+#### GET `/settings`
+Get semua settings
+
+**Response:**
+```json
+{
+  "minScore": 80,
+  "maxFileSize": 10485760,
+  "allowedFormats": ["docx"],
+  "systemMaintenance": false
+}
+```
+
+---
+
+#### PUT `/settings`
+Update settings
+
+**Request:**
+```json
+{
+  "minScore": 85,
+  "maxFileSize": 20971520
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Settings updated"
+}
+```
 
 ---
 
 ### 👤 Users (`userService.js`)
 
-| Endpoint | Method | Digunakan di | Deskripsi |
-|----------|--------|--------------|-----------|
-| `/users/{id}` | GET | - | Get user by ID |
-| `/users/nrp/{nrp}` | GET | - | Get user by NRP |
-| `/users` | GET | - | Get semua users |
+#### GET `/users/{id}`
+Get user by ID
+
+**Response:**
+```json
+{
+  "id": 1,
+  "nrp": "5025201001",
+  "nama": "Ahmad Ridwan",
+  "jurusan": "Teknik Informatika",
+  "email": "ahmad.ridwan@student.its.ac.id"
+}
+```
+
+---
+
+#### GET `/users/nrp/{nrp}`
+Get user by NRP
+
+**Response:** Same as `/users/{id}`
+
+---
+
+#### GET `/users`
+Get semua users
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "nrp": "5025201001",
+    "nama": "Ahmad Ridwan",
+    "jurusan": "Teknik Informatika",
+    "email": "ahmad.ridwan@student.its.ac.id"
+  }
+]
+```
 
 ---
 
@@ -83,19 +592,20 @@ src/
 │   ├── api/
 │   │   ├── client.js              # API client utama
 │   │   ├── mockClient.js          # Mock API client
+│   │   ├── errorHandler.js        # Error handling
 │   │   ├── authService.js         # Auth endpoints
 │   │   ├── validationService.js   # Validation endpoints
 │   │   ├── templateService.js     # Template endpoints
 │   │   ├── dashboardService.js    # Dashboard endpoints
 │   │   ├── settingsService.js     # Settings endpoints
 │   │   └── userService.js         # User endpoints
-│   ├── utils/
-│   │   ├── errorHandler.js        # Error handling
-│   │   └── storage.js             # Local storage
 │   └── index.js                   # Export semua services
 ├── data/
 │   ├── mockData.js                # Mock data users & validations
 │   └── validationData.js          # Mock data structure & errors
+├── redux/
+│   ├── store.js                   # Redux store
+│   └── userSlice.js               # User state (with localStorage)
 └── pages/
     ├── admin/
     │   ├── Dashboard.jsx          # dashboardService
@@ -174,7 +684,7 @@ VITE_USE_MOCK=false
 1. **Mock Mode**: Semua endpoint menggunakan `mockClient.js` dengan data dari `mockData.js` dan `validationData.js`
 2. **Real API Mode**: Semua endpoint akan hit ke backend di `VITE_API_BASE_URL`
 3. **Error Handling**: Semua service menggunakan `handleApiError()` dari `errorHandler.js`
-4. **Storage**: Token dan user info disimpan di localStorage via `storage.js`
+4. **Persistence**: Token dan user info disimpan di localStorage via Redux `userSlice.js`
 
 ---
 

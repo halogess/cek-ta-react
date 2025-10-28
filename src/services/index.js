@@ -4,5 +4,4 @@ export { templateService } from './api/templateService';
 export { settingsService } from './api/settingsService';
 export { dashboardService } from './api/dashboardService';
 export { userService } from './api/userService';
-export { handleApiError, isUnauthorized, isForbidden, isNotFound } from './utils/errorHandler';
-export { storage } from './utils/storage';
+export { handleApiError, isUnauthorized, isForbidden, isNotFound } from './api/errorHandler';

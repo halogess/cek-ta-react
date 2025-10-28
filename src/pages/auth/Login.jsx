@@ -7,7 +7,7 @@ import BrandingPanel from '../../components/shared/auth/BrandingPanel';
 import LoginForm from '../../components/shared/auth/LoginForm';
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../../redux/userSlice';
-import { authService, storage, handleApiError } from '../../services';
+import { authService, handleApiError } from '../../services';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -26,9 +26,7 @@ const Login = () => {
     if (Object.keys(newErrors).length === 0) {
       try {
         const response = await authService.login(nrp, password);
-        storage.setToken(response.token);
-        storage.setUser(response.user);
-        dispatch(loginSuccess({ user: response.user.nrp, role: response.user.role }));
+        dispatch(loginSuccess({ user: response.user.nrp, role: response.user.role, token: response.token }));
         navigate(response.user.role === 'admin' ? '/admin' : '/mahasiswa');
       } catch (error) {
         const errorInfo = handleApiError(error);

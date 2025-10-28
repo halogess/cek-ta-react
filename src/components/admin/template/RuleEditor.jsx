@@ -55,19 +55,7 @@ export default function RuleEditor({ rule, index, onUpdate, onToggle }) {
   const inputType = getInputType(parsed.key);
   
   const updateRuleValue = (newNumber, newUnit, newValue, fontName, fontSize, fontStyle) => {
-    let updatedValue;
-    
-    if (parsed.fontName !== undefined) {
-      const parts = [fontName, fontSize];
-      if (fontStyle) parts.push(fontStyle);
-      updatedValue = `${parsed.key}: ${parts.join(', ')}`;
-    } else if (parsed.number !== undefined) {
-      updatedValue = `${parsed.key}: ${newNumber}${newUnit}`;
-    } else {
-      updatedValue = `${parsed.key}: ${newValue}`;
-    }
-    
-    onUpdate(index, updatedValue);
+    onUpdate(index, newNumber, newUnit, newValue, fontName, fontSize, fontStyle);
   };
   
   return (
