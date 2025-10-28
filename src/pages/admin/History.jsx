@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Stack, Paper, Pagination, Box, Typography, FormControl, Select, MenuItem } from '@mui/material';
+import { Stack, Paper, Pagination, Box } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useHeader } from '../../context/HeaderContext';
-import HistoryItem from '../../components/shared/ui/HistoryItem';
 import FilterBar from '../../components/shared/ui/FilterBar';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
+import DataInfo from '../../components/shared/ui/DataInfo';
+import HistoryList from '../../components/admin/history/HistoryList';
 import { getAllValidations } from '../../data/mockData';
 
 const History = () => {
@@ -159,46 +160,19 @@ const History = () => {
       </Paper>
 
       <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-        {/* Info Data */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            Menampilkan {startIndex + 1}-{Math.min(endIndex, filteredData.length)} dari {filteredData.length} data
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2" color="text.secondary">Tampilkan:</Typography>
-            <FormControl size="small">
-              <Select value={rowsPerPage} onChange={handleRowsPerPageChange} sx={{ minWidth: 80 }}>
-                <MenuItem value={5}>5</MenuItem>
-                <MenuItem value={10}>10</MenuItem>
-                <MenuItem value={25}>25</MenuItem>
-                <MenuItem value={50}>50</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </Box>
+        <DataInfo
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalData={filteredData.length}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
 
-        <Stack spacing={2}>
-          {paginatedData.map((item) => (
-            <HistoryItem
-              key={item.id}
-              judulTA={item.judulTA}
-              filename={item.filename}
-              date={item.date}
-              nama={item.nama}
-              nrp={item.nrp}
-              jurusan={item.jurusan}
-              status={item.status}
-              statusColor={item.statusColor}
-              errorCount={item.errorCount}
-              skor={item.skor}
-              isPassedValidation={item.isPassedValidation}
-              onDetail={() => navigate(`/admin/detail/${item.id}`)}
-              onDownload={handleDownloadCertificate}
-              showCancelButton={false}
-              isAdminView={true}
-            />
-          ))}
-        </Stack>
+        <HistoryList
+          data={paginatedData}
+          onDetail={(id) => navigate(`/admin/detail/${id}`)}
+          onDownload={handleDownloadCertificate}
+        />
 
         {/* Pagination */}
         {totalPages > 1 && (

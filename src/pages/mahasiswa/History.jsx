@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Stack, Paper, Pagination, Box, Typography, FormControl, Select, MenuItem } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Stack, Paper, Pagination, Box } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useHeader } from '../../context/HeaderContext';
 import { useSelector } from 'react-redux';
-import HistoryItem from '../../components/shared/ui/HistoryItem';
 import FilterBar from '../../components/shared/ui/FilterBar';
+import DataInfo from '../../components/shared/ui/DataInfo';
+import HistoryList from '../../components/mahasiswa/history/HistoryList';
 import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 import { getValidationsByUser } from '../../data/mockData';
@@ -150,42 +151,20 @@ export default function History() {
           onReset={handleReset}
         />
 
-        {/* Info Data */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3, mb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            Menampilkan {startIndex + 1}-{Math.min(endIndex, filteredData.length)} dari {filteredData.length} data
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2" color="text.secondary">Tampilkan:</Typography>
-            <FormControl size="small">
-              <Select value={rowsPerPage} onChange={handleRowsPerPageChange} sx={{ minWidth: 80 }}>
-                <MenuItem value={5}>5</MenuItem>
-                <MenuItem value={10}>10</MenuItem>
-                <MenuItem value={25}>25</MenuItem>
-                <MenuItem value={50}>50</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </Box>
+        <DataInfo
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalData={filteredData.length}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
 
-        {/* List Riwayat */}
-        <Stack spacing={2}>
-          {paginatedData.map((item) => (
-            <HistoryItem
-              key={item.id}
-              filename={item.filename}
-              date={item.date}
-              size={item.size}
-              status={item.status}
-              statusColor={item.statusColor}
-              errorCount={item.errorCount}
-              onCancel={() => handleCancelClick(item.filename)}
-              isPassedValidation={item.isPassedValidation}
-              onDetail={() => navigate(`/mahasiswa/detail/${item.id}`)}
-              onDownload={handleDownloadCertificate}
-            />
-          ))}
-        </Stack>
+        <HistoryList
+          data={paginatedData}
+          onDetail={(id) => navigate(`/mahasiswa/detail/${id}`)}
+          onDownload={handleDownloadCertificate}
+          onCancel={handleCancelClick}
+        />
 
         {/* Pagination */}
         {totalPages > 1 && (

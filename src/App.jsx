@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box, AppBar, Toolbar, IconButton, useTheme, useMediaQuery,
   Button, Stack, Typography
@@ -22,9 +22,14 @@ function App() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { role, user } = useSelector((state) => state.user);
   const { headerInfo } = useHeader();
-  
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   const currentUser = role === 'admin' ? null : mockUsers.find(u => u.nrp === user);
   const displayName = role === 'admin' ? 'Administrator' : (currentUser?.nama || 'Mahasiswa');
 
