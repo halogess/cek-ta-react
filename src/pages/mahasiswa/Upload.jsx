@@ -1,3 +1,12 @@
+/**
+ * Upload Page - Halaman untuk upload dokumen validasi
+ * Menampilkan:
+ * - Form upload dengan file picker
+ * - Checkbox konfirmasi
+ * - Info tentang format dan ukuran file
+ * - Validasi: tidak bisa upload jika ada dokumen dalam antrian
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Stack } from '@mui/material';
 import { useHeader } from '../../context/HeaderContext';
@@ -6,16 +15,17 @@ import UploadFormCard from '../../components/mahasiswa/upload/UploadFormCard';
 import UploadInfoCard from '../../components/mahasiswa/upload/UploadInfoCard';
 import { validationService } from '../../services';
 
-
 export default function Upload() {
   const { setHeaderInfo } = useHeader();
   const { user } = useSelector((state) => state.user);
+  
+  // State untuk form
   const [file, setFile] = useState(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  
   const [hasQueuedDoc, setHasQueuedDoc] = useState(false);
 
+  // Check apakah user punya dokumen dalam antrian/diproses
   useEffect(() => {
     const checkQueuedDoc = async () => {
       try {
@@ -28,7 +38,7 @@ export default function Upload() {
     if (user) checkQueuedDoc();
   }, [user]);
 
-  // Mengatur judul header saat komponen dimuat
+  // Set header title saat mount
   useEffect(() => {
     setHeaderInfo({
       title: 'Unggah Dokumen',
@@ -39,16 +49,18 @@ export default function Upload() {
     };
   }, [setHeaderInfo]);
 
+  // Handler untuk file change
   const handleFileChange = (event) => {
     if (event.target.files && event.target.files.length > 0) {
       setFile(event.target.files[0]);
     }
   };
 
+  // Disable button jika: tidak ada file, belum confirm, atau ada dokumen dalam antrian
   const isButtonDisabled = !file || !isConfirmed || hasQueuedDoc;
 
+  // Handler untuk upload
   const handleUpload = () => {
-    // Simulate upload process
     setUploadSuccess(true);
   };
 

@@ -1,4 +1,8 @@
-// src/pages/auth/Login.jsx
+/**
+ * Login Page - Halaman authentication untuk admin dan mahasiswa
+ * Menampilkan form login dengan branding panel
+ * Redirect ke dashboard sesuai role setelah login berhasil
+ */
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -13,20 +17,34 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // State untuk form input
   const [nrp, setNrp] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState({});
 
+  /**
+   * Handle login submit
+   * - Validasi input
+   * - Call API login
+   * - Simpan ke Redux
+   * - Redirect ke dashboard
+   */
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Validasi input
     const newErrors = {};
     if (!nrp) newErrors.nrp = 'NRP tidak boleh kosong.';
     if (!password) newErrors.password = 'Password tidak boleh kosong.';
     setError(newErrors);
+    
+    // Jika validasi lolos, lakukan login
     if (Object.keys(newErrors).length === 0) {
       try {
         const response = await authService.login(nrp, password);
+        // Simpan ke Redux dan localStorage
         dispatch(loginSuccess({ user: response.user.nrp, role: response.user.role, token: response.token }));
+        // Redirect sesuai role
         navigate(response.user.role === 'admin' ? '/admin' : '/mahasiswa');
       } catch (error) {
         const errorInfo = handleApiError(error);

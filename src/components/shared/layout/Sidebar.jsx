@@ -1,3 +1,10 @@
+/**
+ * Sidebar Component - Navigation sidebar dengan responsive behavior
+ * - Mobile: Temporary drawer (overlay)
+ * - Desktop: Persistent drawer (collapsible)
+ * Menu items berbeda untuk admin dan mahasiswa
+ */
+
 import { NavLink } from 'react-router-dom';
 import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Stack } from '@mui/material';
 import { FactCheckOutlined } from '@mui/icons-material';
@@ -7,17 +14,15 @@ import { mahasiswaMenuItems, adminMenuItems } from './menuItems';
 
 const drawerWidth = 280;
 
-
-
-
 const Sidebar = ({ isMobile, mobileOpen, desktopOpen, onDrawerToggle }) => {
+    // Ambil role dari Redux untuk menentukan menu items
     const { role } = useSelector((state) => state.user);
     const menuItems = role === 'admin' ? adminMenuItems : mahasiswaMenuItems;
 
+    // Konten drawer yang sama untuk mobile dan desktop
     const drawerContent = (
-
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflow: 'hidden' }}>
-            <Wave />
+            <Wave /> {/* Background wave animation */}
             <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', flexGrow: 1, zIndex: 1 }}>
                 {/* Bagian Logo */}
                 <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 2, mb: 2 }}>

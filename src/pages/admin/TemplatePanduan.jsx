@@ -1,3 +1,15 @@
+/**
+ * Admin Template Panduan Page
+ * Halaman untuk mengelola template validasi:
+ * - Upload/delete template
+ * - Edit nama template
+ * - Activate/deactivate template
+ * - Edit format rules (page settings & components)
+ * - Set minimum score untuk lulus
+ * 
+ * Fitur change tracking: simpan original state untuk cancel changes
+ */
+
 import { useEffect, useState } from 'react';
 import { Box, Typography, Paper, Button, Stack } from '@mui/material';
 import { UploadFileOutlined } from '@mui/icons-material';
@@ -16,39 +28,46 @@ import NotificationSnackbar from '../../components/shared/ui/NotificationSnackba
 
 export default function TemplatePanduan() {
   const { setHeaderInfo } = useHeader();
+  
+  // State untuk data template
   const [templates, setTemplates] = useState([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState(1);
   const [loading, setLoading] = useState(false);
   
-  // Dialogs
+  // State untuk dialogs
   const [uploadDialog, setUploadDialog] = useState(false);
   const [editDialog, setEditDialog] = useState(false);
   const [editRuleDialog, setEditRuleDialog] = useState(false);
   const [saveConfirmDialog, setSaveConfirmDialog] = useState(false);
   const [previewDialog, setPreviewDialog] = useState(false);
   
-  // Edit states
+  // State untuk edit template
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [newName, setNewName] = useState('');
+  
+  // State untuk edit rules
   const [editingRule, setEditingRule] = useState(null);
   const [localRules, setLocalRules] = useState([]);
+  
+  // State untuk change tracking
   const [hasChanges, setHasChanges] = useState(false);
   const [originalTemplates, setOriginalTemplates] = useState([]);
   
-  // Upload
+  // State untuk upload
   const [file, setFile] = useState(null);
   
-  // Preview
+  // State untuk preview
   const [previewTemplate, setPreviewTemplate] = useState(null);
   
-  // Min Score
+  // State untuk minimum score
   const [minScore, setMinScore] = useState(80);
   const [tempMinScore, setTempMinScore] = useState(80);
   const [scoreChanged, setScoreChanged] = useState(false);
   
-  // Notifications
+  // State untuk notifications
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
+  // Set header dan fetch data saat mount
   useEffect(() => {
     setHeaderInfo({ title: 'Template Panduan' });
     fetchTemplates();
@@ -56,6 +75,7 @@ export default function TemplatePanduan() {
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
 
+  // Fetch semua template dari API
   const fetchTemplates = async () => {
     try {
       setLoading(true);
@@ -68,6 +88,7 @@ export default function TemplatePanduan() {
     }
   };
 
+  // Fetch minimum score dari API
   const fetchMinScore = async () => {
     try {
       const data = await settingsService.getMinScore();
@@ -78,20 +99,24 @@ export default function TemplatePanduan() {
     }
   };
 
+  // Handler untuk activate template (set sebagai template aktif)
   const handleActivate = (id) => {
     setTemplates(templates.map(t => ({ ...t, isActive: t.id === id })));
   };
 
+  // Handler untuk delete template
   const handleDelete = (id) => {
     setTemplates(templates.filter(t => t.id !== id));
   };
 
+  // Handler untuk buka dialog edit nama template
   const handleEditName = (template) => {
     setEditingTemplate(template);
     setNewName(template.name.replace('.docx', ''));
     setEditDialog(true);
   };
 
+  // Handler untuk save nama template baru
   const handleSaveName = () => {
     setTemplates(templates.map(t => 
       t.id === editingTemplate.id ? { ...t, name: newName + '.docx' } : t
@@ -110,7 +135,12 @@ export default function TemplatePanduan() {
     setEditRuleDialog(true);
   };
 
+  /**
+   * Handler untuk toggle enable/disable rule
+   * Backup original state jika ini perubahan pertama (untuk cancel)
+   */
   const handleToggleRule = (type, parentId, ruleIndex) => {
+    // Backup original state jika belum ada changes
     if (!hasChanges) {
       setOriginalTemplates(JSON.parse(JSON.stringify(templates)));
     }
@@ -210,12 +240,14 @@ export default function TemplatePanduan() {
     setHasChanges(true);
   };
 
+  // Handler untuk save semua perubahan rules
   const handleSaveChanges = () => {
     setSaveConfirmDialog(false);
     setHasChanges(false);
     setShowSaveSuccess(true);
   };
 
+  // Handler untuk save minimum score
   const handleSaveScore = async () => {
     try {
       await settingsService.updateMinScore(tempMinScore);
@@ -227,11 +259,13 @@ export default function TemplatePanduan() {
     }
   };
 
+  // Handler untuk preview template
   const handlePreview = (template) => {
     setPreviewTemplate(template);
     setPreviewDialog(true);
   };
 
+  // Handler untuk download template file
   const handleDownload = (template) => {
     const link = document.createElement('a');
     link.href = template.fileUrl;
