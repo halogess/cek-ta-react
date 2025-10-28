@@ -63,14 +63,14 @@ const Wave = () => (
 const mahasiswaMenuItems = [
     { text: 'Dashboard', icon: <HomeOutlined />, path: '/mahasiswa' },
     { text: 'Unggah Dokumen', icon: <UploadOutlined />, path: '/mahasiswa/upload' },
+    { text: 'Template & Panduan', icon: <DescriptionOutlined />, path: '/mahasiswa/template' },
     { text: 'Riwayat', icon: <HistoryOutlined />, path: '/mahasiswa/history' },
 ];
 
 const adminMenuItems = [
     { text: 'Dashboard', icon: <HomeOutlined />, path: '/admin' },
     { text: 'Template Panduan', icon: <DescriptionOutlined />, path: '/admin/template' },
-    { text: 'Editor Aturan', icon: <SettingsOutlined />, path: '/admin/rules' },
-    { text: 'Riwayat Mahasiswa', icon: <HistoryOutlined />, path: '/admin/history' },
+    { text: 'Riwayat Validasi', icon: <HistoryOutlined />, path: '/admin/history' },
 ];
 
 const Sidebar = ({ isMobile, mobileOpen, desktopOpen, onDrawerToggle }) => {
@@ -110,7 +110,7 @@ const Sidebar = ({ isMobile, mobileOpen, desktopOpen, onDrawerToggle }) => {
                     </Box>
                     <Box>
                         <Typography variant="h6" component="h1" fontWeight="bold" color="white">
-                            DocValidator
+                            Docx Validator
                         </Typography>
                         <Typography variant="body2" sx={{ opacity: 0.7, color: '#FFFFFF' }}>
                             {role === 'admin' ? 'Administrator' : 'Mahasiswa'}

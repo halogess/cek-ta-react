@@ -15,7 +15,10 @@ import App from './App.jsx';
 import Login from './pages/auth/Login.jsx';
 import MahasiswaDashboard from './pages/mahasiswa/Dashboard.jsx';
 import AdminDashboard from './pages/admin/Dashboard.jsx';
-import TemplatePanduan from './pages/admin/TemplatePanduan.jsx';
+import AdminTemplatePanduan from './pages/admin/TemplatePanduan.jsx';
+import MahasiswaTemplatePanduan from './pages/mahasiswa/TemplatePanduan.jsx';
+import AdminHistory from './pages/admin/History.jsx';
+import AdminDetailValidation from './pages/admin/DetailValidation.jsx';
 import NotFound from './pages/NotFound.jsx';
 import Upload from './pages/mahasiswa/Upload.jsx';
 import History from './pages/mahasiswa/History.jsx';
@@ -32,6 +35,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <MahasiswaDashboard /> },
       { path: 'upload', element: <Upload /> },
+      { path: 'template', element: <MahasiswaTemplatePanduan /> },
       { path: 'history', element: <History /> },
       { path: 'detail/:id', element: <DetailValidation /> }
     ],
@@ -41,7 +45,9 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <AdminDashboard /> },
-      { path: 'template', element: <TemplatePanduan /> },
+      { path: 'template', element: <AdminTemplatePanduan /> },
+      { path: 'history', element: <AdminHistory /> },
+      { path: 'detail/:id', element: <AdminDetailValidation /> },
     ],
   },
   {

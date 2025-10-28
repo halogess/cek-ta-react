@@ -13,6 +13,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout } from './redux/userSlice';
 import { useHeader } from './context/HeaderContext.jsx';
 import Sidebar from './components/shared/layout/Sidebar';
+import { mockUsers } from './data/mockData';
 
 const drawerWidth = 280;
 
@@ -23,8 +24,11 @@ function App() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { role } = useSelector((state) => state.user);
+  const { role, user } = useSelector((state) => state.user);
   const { headerInfo } = useHeader();
+  
+  const currentUser = role === 'admin' ? null : mockUsers.find(u => u.nrp === user);
+  const displayName = role === 'admin' ? 'Administrator' : (currentUser?.nama || 'Mahasiswa');
 
   const handleDrawerToggle = () => {
     if (isMobile) {
@@ -74,9 +78,9 @@ function App() {
           <Stack direction="row" spacing={1} alignItems="center">
             <Button
               startIcon={<PersonOutlineOutlined />}
-              sx={{ color: 'text.secondary', textTransform: 'capitalize', fontWeight: 'medium' }}
+              sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 'medium' }}
             >
-              {role === 'admin' ? 'Administrator' : 'Mahasiswa'}
+              {displayName}
             </Button>
             <Button
               variant="outlined"

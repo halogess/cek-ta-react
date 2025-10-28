@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Paper, Typography, Box, Button, Stack, Radio, FormControlLabel, Alert } from '@mui/material';
 import { UploadFileOutlined } from '@mui/icons-material';
 import { useHeader } from '../../context/HeaderContext';
-  import { useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import FileUploadArea from '../../components/shared/ui/FileUploadArea';
 import InfoListItem from '../../components/shared/ui/InfoListItem';
+import { getValidationsByUser } from '../../data/mockData';
 
 export default function Upload() {
   const { setHeaderInfo } = useHeader();
@@ -13,8 +14,7 @@ export default function Upload() {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   
-  // User 'upload' tidak memiliki dokumen dalam antrian
-  const hasQueuedDoc = user !== 'upload';
+  const hasQueuedDoc = getValidationsByUser(user).some(v => v.status === 'Dalam Antrian');
 
   // Mengatur judul header saat komponen dimuat
   useEffect(() => {

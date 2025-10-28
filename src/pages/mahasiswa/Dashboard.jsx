@@ -8,119 +8,14 @@ import ValidationActions from '../../components/mahasiswa/dashboard/ValidationAc
 import ValidationHistory from '../../components/mahasiswa/dashboard/ValidationHistory';
 import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
-
-// Data sementara untuk riwayat
-const getHistoryData = (user) => {
-  // Jika user adalah 'upload', return array kosong (tidak ada dokumen dalam antrian)
-  if (user === 'upload') {
-    return [];
-  }
-  
-  // Data default untuk user lain
-  return [
-  {
-    filename: 'Proposal_TA_2024.docx',
-    date: '2024-01-20',
-    size: '2.4 MB',
-    status: 'Dalam Antrian',
-    statusColor: 'primary',
-    errorCount: 0,
-  },
-  {
-    filename: 'Tesis_Final_2024.docx',
-    date: '2024-01-19',
-    size: '3.1 MB',
-    status: 'Menunggu Konfirmasi',
-    statusColor: 'warning',
-    errorCount: 5,
-  },
-  {
-    filename: 'Laporan_Skripsi_Final.docx',
-    date: '2024-01-18',
-    size: '4.2 MB',
-    status: 'Selesai',
-    statusColor: 'success',
-    errorCount: 0,
-    isPassedValidation: true,
-  },
-  {
-    filename: 'Draft_TA_Revisi.docx',
-    date: '2024-01-17',
-    size: '2.8 MB',
-    status: 'Selesai',
-    statusColor: 'success',
-    errorCount: 3,
-    isPassedValidation: false,
-  },
-  {
-    filename: 'Draft_Awal.docx',
-    date: '2024-01-16',
-    size: '1.8 MB',
-    status: 'Dibatalkan',
-    statusColor: 'error',
-    errorCount: 0,
-  },
-  {
-    filename: 'BAB_1_Pendahuluan.docx',
-    date: '2024-01-15',
-    size: '1.5 MB',
-    status: 'Selesai',
-    statusColor: 'success',
-    errorCount: 8,
-    isPassedValidation: false,
-  },
-  {
-    filename: 'BAB_2_Tinjauan_Pustaka.docx',
-    date: '2024-01-14',
-    size: '2.2 MB',
-    status: 'Menunggu Konfirmasi',
-    statusColor: 'warning',
-    errorCount: 2,
-  },
-  {
-    filename: 'BAB_3_Metodologi.docx',
-    date: '2024-01-13',
-    size: '1.9 MB',
-    status: 'Selesai',
-    statusColor: 'success',
-    errorCount: 12,
-    isPassedValidation: false,
-  },
-  {
-    filename: 'Abstrak_Penelitian.docx',
-    date: '2024-01-12',
-    size: '0.8 MB',
-    status: 'Selesai',
-    statusColor: 'success',
-    errorCount: 4,
-    isPassedValidation: false,
-  },
-  {
-    filename: 'Daftar_Pustaka.docx',
-    date: '2024-01-11',
-    size: '1.2 MB',
-    status: 'Menunggu Konfirmasi',
-    statusColor: 'warning',
-    errorCount: 1,
-  },
-  {
-    filename: 'Lampiran_Data.docx',
-    date: '2024-01-10',
-    size: '3.5 MB',
-    status: 'Selesai',
-    statusColor: 'success',
-    errorCount: 6,
-    isPassedValidation: false,
-  },
-  ];
-};
+import { getValidationsByUser } from '../../data/mockData';
 
 export default function MahasiswaDashboard() {
   const { setHeaderInfo } = useHeader();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
   
-  const historyData = getHistoryData(user);
+  const historyData = getValidationsByUser(user);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -151,9 +46,15 @@ export default function MahasiswaDashboard() {
     };
   }, [setHeaderInfo]);
 
+  const stats = {
+    total: historyData.length,
+    passed: historyData.filter(v => v.status === 'Lolos').length,
+    needsFix: historyData.filter(v => v.status === 'Tidak Lolos').length
+  };
+
   return (
     <Stack spacing={3}>
-      <StatsCards totalValidations="12" successCount="8" needsFixCount="4" />
+      <StatsCards totalValidations={stats.total.toString()} successCount={stats.passed.toString()} needsFixCount={stats.needsFix.toString()} />
       
       <ValidationActions 
         onUpload={() => navigate('/mahasiswa/upload')} 

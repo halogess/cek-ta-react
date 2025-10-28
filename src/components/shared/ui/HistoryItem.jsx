@@ -3,7 +3,7 @@ import { Paper, Typography, Box, Stack, IconButton, Chip, Tooltip } from '@mui/m
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import { CheckCircleOutline, ErrorOutline, HourglassEmptyOutlined, CancelOutlined, DownloadOutlined, CheckOutlined, BlockOutlined } from '@mui/icons-material';
 
-const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload, onConfirm }) => (
+const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload, onConfirm, showCancelButton = true, showConfirmButton = true, additionalInfo, isAdminView = false, judulTA, nama, nrp, jurusan, skor }) => (
   <Paper
     elevation={0}
     onClick={onDetail}
@@ -38,16 +38,37 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
         <DescriptionOutlinedIcon />
       </Box>
       <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography fontWeight="600" noWrap>{filename}</Typography>
-        <Stack direction="row" spacing={1} divider={<Typography color="text.secondary">•</Typography>}>
-          <Typography variant="body2" color="text.secondary">Diupload pada {date}</Typography>
-          <Typography variant="body2" color="text.secondary">{size}</Typography>
-        </Stack>
+        {isAdminView ? (
+          <>
+            <Typography fontWeight="600" noWrap>{judulTA}</Typography>
+            <Stack direction="row" spacing={1} divider={<Typography color="text.secondary">•</Typography>}>
+              <Typography variant="body2" color="text.secondary">{filename}</Typography>
+              <Typography variant="body2" color="text.secondary">{date}</Typography>
+              <Typography variant="body2" color="text.secondary">{nama}</Typography>
+              <Typography variant="body2" color="text.secondary">{nrp}</Typography>
+              <Typography variant="body2" color="text.secondary">{jurusan}</Typography>
+            </Stack>
+          </>
+        ) : (
+          <>
+            <Typography fontWeight="600" noWrap>{filename}</Typography>
+            <Stack direction="row" spacing={1} divider={<Typography color="text.secondary">•</Typography>}>
+              <Typography variant="body2" color="text.secondary">Diupload pada {date}</Typography>
+              <Typography variant="body2" color="text.secondary">{size}</Typography>
+              {additionalInfo && <Typography variant="body2" color="text.secondary">{additionalInfo}</Typography>}
+            </Stack>
+          </>
+        )}
       </Box>
     </Stack>
     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 'auto' }}>
       <Box textAlign="right" sx={{ width: 100 }}>
-        {status === 'Selesai' && (
+        {isAdminView ? (
+          <>
+            <Typography fontWeight="600" variant="body2">Skor: {skor}</Typography>
+            <Typography variant="caption" color="text.secondary">{errorCount} Kesalahan</Typography>
+          </>
+        ) : status === 'Selesai' && (
           <>
             <Typography fontWeight="600" variant="body2">{errorCount} Kesalahan</Typography>
             <Typography variant="caption" color="text.secondary">Ditemukan</Typography>
@@ -82,21 +103,21 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
         />
       </Tooltip>
       <Box sx={{ width: 40, display: 'flex', justifyContent: 'center' }}>
-        {status === 'Dalam Antrian' && (
+        {status === 'Dalam Antrian' && showCancelButton && (
           <Tooltip title="Batalkan" arrow>
             <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); onCancel(); }}>
               <CancelOutlined />
             </IconButton>
           </Tooltip>
         )}
-        {status === 'Menunggu Konfirmasi' && (
+        {status === 'Menunggu Konfirmasi' && showConfirmButton && (
           <Tooltip title="Konfirmasi" arrow>
             <IconButton size="small" color="success" onClick={(e) => { e.stopPropagation(); onConfirm(); }}>
               <CheckOutlined />
             </IconButton>
           </Tooltip>
         )}
-        {status === 'Selesai' && isPassedValidation && (
+        {(status === 'Selesai' || status === 'Lolos') && isPassedValidation && (
           <Tooltip title="Download Sertifikat" arrow>
             <IconButton size="small" color="primary" onClick={(e) => { e.stopPropagation(); onDownload(); }}>
               <DownloadOutlined />

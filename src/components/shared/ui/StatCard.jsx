@@ -1,7 +1,7 @@
 import React from 'react';
 import { Paper, Typography, Box } from '@mui/material';
 
-const StatCard = ({ title, value, subtitle, icon, iconColor }) => (
+const StatCard = ({ title, value, subtitle, icon, iconColor, action }) => (
   <Paper
     elevation={0}
     sx={{
@@ -16,12 +16,13 @@ const StatCard = ({ title, value, subtitle, icon, iconColor }) => (
       width: '100%'
     }}
   >
-    <Box>
+    <Box sx={{ flex: 1, minWidth: 0, pr: 2 }}>
       <Typography color="text.secondary" variant="body2">{title}</Typography>
-      <Typography variant="h4" fontWeight="bold" sx={{ my: 0.5 }}>{value}</Typography>
+      <Typography variant="h4" fontWeight="bold" sx={{ my: 0.5, wordBreak: 'break-word', fontSize: value?.length > 15 ? '0.95rem' : '2.125rem' }}>{value}</Typography>
       <Typography variant="body2" color="text.secondary">{subtitle}</Typography>
+      {action}
     </Box>
-    <Box sx={{ color: iconColor, display: 'flex', alignItems: 'center', '& .MuiSvgIcon-root': { fontSize: '40px' } }}>
+    <Box sx={{ color: iconColor, display: 'flex', alignItems: 'center', flexShrink: 0, '& .MuiSvgIcon-root': { fontSize: '40px' } }}>
       {icon}
     </Box>
   </Paper>

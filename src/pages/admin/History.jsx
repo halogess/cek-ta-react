@@ -1,78 +1,61 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useHeader } from '../../context/HeaderContext';
-import { useSelector } from 'react-redux';
 import HistoryItem from '../../components/shared/ui/HistoryItem';
 import FilterBar from '../../components/shared/ui/FilterBar';
-import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
-import { getValidationsByUser } from '../../data/mockData';
+import { getAllValidations } from '../../data/mockData';
 
-export default function History() {
+const History = () => {
   const { setHeaderInfo } = useHeader();
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.user);
   const [filterStatus, setFilterStatus] = useState('Semua');
+  const [filterProdi, setFilterProdi] = useState('Semua');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [sortBy, setSortBy] = useState('terbaru');
   const [searchQuery, setSearchQuery] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedDoc, setSelectedDoc] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showCancelSuccess, setShowCancelSuccess] = useState(false);
-  const [showConfirmSuccess, setShowConfirmSuccess] = useState(false);
 
   useEffect(() => {
     setHeaderInfo({ title: 'Riwayat Validasi' });
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
 
-  const handleCancelClick = (filename) => {
-    setSelectedDoc(filename);
-    setOpenDialog(true);
-  };
-
-  const handleConfirmCancel = () => {
-    // Logic untuk membatalkan dokumen
-    setOpenDialog(false);
-    setSelectedDoc(null);
-    setShowCancelSuccess(true);
-  };
-
   const handleDownloadCertificate = () => {
-    // Logic untuk download sertifikat
     setShowSuccess(true);
   };
 
-  const handleConfirmDocument = () => {
-    // Logic untuk konfirmasi dokumen
-    setShowConfirmSuccess(true);
-  };
+  let filteredData = getAllValidations().filter(item => item.status === 'Lolos' || item.status === 'Tidak Lolos');
 
-  const validationHistoryData = getValidationsByUser(user);
-  
-  // Filter dan sort data
-  let filteredData = validationHistoryData;
-  
-  // Filter by status
   if (filterStatus !== 'Semua') {
     filteredData = filteredData.filter(item => item.status === filterStatus);
   }
-  
-  // Filter by search
+
+  if (filterProdi !== 'Semua') {
+    filteredData = filteredData.filter(item => item.jurusan === filterProdi);
+  }
+
+  if (startDate) {
+    filteredData = filteredData.filter(item => new Date(item.date) >= new Date(startDate));
+  }
+
+  if (endDate) {
+    filteredData = filteredData.filter(item => new Date(item.date) <= new Date(endDate));
+  }
+
   if (searchQuery) {
     filteredData = filteredData.filter(item => 
-      item.filename.toLowerCase().includes(searchQuery.toLowerCase())
+      item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.nrp.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }
-  
-  // Sort
+
   if (sortBy === 'terbaru') {
     filteredData = [...filteredData].sort((a, b) => new Date(b.date) - new Date(a.date));
   } else if (sortBy === 'terlama') {
     filteredData = [...filteredData].sort((a, b) => new Date(a.date) - new Date(b.date));
-  } else if (sortBy === 'nama') {
-    filteredData = [...filteredData].sort((a, b) => a.filename.localeCompare(b.filename));
   }
 
   return (
@@ -83,61 +66,57 @@ export default function History() {
           onSearchChange={setSearchQuery}
           filterStatus={filterStatus}
           onFilterChange={setFilterStatus}
+          filterProdi={filterProdi}
+          onFilterProdiChange={setFilterProdi}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
+          endDate={endDate}
+          onEndDateChange={setEndDate}
           sortBy={sortBy}
           onSortChange={setSortBy}
           onReset={() => {
             setFilterStatus('Semua');
+            setFilterProdi('Semua');
+            setStartDate('');
+            setEndDate('');
             setSortBy('terbaru');
             setSearchQuery('');
           }}
+          isAdminView={true}
         />
 
-        {/* List Riwayat */}
         <Stack spacing={2} sx={{ mt: 3 }}>
           {filteredData.map((item) => (
             <HistoryItem
               key={item.id}
+              judulTA={item.judulTA}
               filename={item.filename}
               date={item.date}
-              size={item.size}
+              nama={item.nama}
+              nrp={item.nrp}
+              jurusan={item.jurusan}
               status={item.status}
               statusColor={item.statusColor}
               errorCount={item.errorCount}
-              onCancel={() => handleCancelClick(item.filename)}
+              skor={item.skor}
               isPassedValidation={item.isPassedValidation}
-              onDetail={() => navigate(`/mahasiswa/detail/${item.id}`)}
+              onDetail={() => navigate(`/admin/detail/${item.id}`)}
               onDownload={handleDownloadCertificate}
-              onConfirm={handleConfirmDocument}
+              showCancelButton={false}
+              showConfirmButton={false}
+              isAdminView={true}
             />
           ))}
         </Stack>
       </Paper>
-
-      <ConfirmDialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        onConfirm={handleConfirmCancel}
-        title="Batalkan Validasi?"
-        message={<>Apakah Anda yakin ingin membatalkan validasi dokumen <strong>{selectedDoc}</strong>? Tindakan ini tidak dapat dibatalkan.</>}
-      />
 
       <NotificationSnackbar
         open={showSuccess}
         onClose={() => setShowSuccess(false)}
         message="Sertifikat berhasil didownload!"
       />
-      
-      <NotificationSnackbar
-        open={showCancelSuccess}
-        onClose={() => setShowCancelSuccess(false)}
-        message="Dokumen berhasil dibatalkan!"
-      />
-
-      <NotificationSnackbar
-        open={showConfirmSuccess}
-        onClose={() => setShowConfirmSuccess(false)}
-        message="Dokumen berhasil dikonfirmasi!"
-      />
     </Stack>
   );
-}
+};
+
+export default History;
