@@ -5,6 +5,7 @@ import { useHeader } from '../../context/HeaderContext';
 import FileUploadArea from '../../components/shared/ui/FileUploadArea';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 import { renderAsync } from 'docx-preview';
+import { templateService, settingsService } from '../../services';
 
 export default function TemplatePanduan() {
   const { setHeaderInfo } = useHeader();
@@ -12,242 +13,36 @@ export default function TemplatePanduan() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [extractedRules, setExtractedRules] = useState([]);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
-  const [templates, setTemplates] = useState([
-    { 
-      id: 1, 
-      name: 'Panduan_TA_2024.docx', 
-      version: '2025.1', 
-      rules: 70, 
-      date: '2024-01-15', 
-      isActive: true,
-      fileUrl: '/templates/[TEMPLATE] BUKU TA - TESIS.docx',
-      formatRules: {
-        page_settings: [
-          { id: 'a4_portrait', description: 'A4 Portrait (Dokumen Utama)', rules: [
-            { value: 'Paper Size: A4', enabled: true },
-            { value: 'Orientation: Portrait', enabled: true },
-            { value: 'Margin Top: 4cm', enabled: true },
-            { value: 'Margin Left: 4cm', enabled: true },
-            { value: 'Margin Bottom: 3cm', enabled: true },
-            { value: 'Margin Right: 3cm', enabled: true }
-          ]},
-          { id: 'a4_landscape', description: 'A4 Landscape (Lampiran)', rules: [
-            { value: 'Paper Size: A4', enabled: true },
-            { value: 'Orientation: Landscape', enabled: true },
-            { value: 'Margin Top: 4cm', enabled: true },
-            { value: 'Margin Left: 3cm', enabled: true },
-            { value: 'Margin Bottom: 3cm', enabled: true },
-            { value: 'Margin Right: 4cm', enabled: true }
-          ]},
-          { id: 'a3_landscape', description: 'A3 Landscape (Lampiran Khusus)', rules: [
-            { value: 'Paper Size: A3', enabled: true },
-            { value: 'Orientation: Landscape', enabled: true },
-            { value: 'Margin Top: 4cm', enabled: true },
-            { value: 'Margin Left: 4cm', enabled: true },
-            { value: 'Margin Bottom: 3cm', enabled: true },
-            { value: 'Margin Right: 3cm', enabled: true }
-          ]}
-        ],
-        components: [
-          { id: 'judul_bab', name: 'Judul Bab', rules: [
-            { value: 'Font: Times New Roman, 16pt, Bold', enabled: true },
-            { value: 'Case: Uppercase', enabled: true },
-            { value: 'Alignment: Center', enabled: true },
-            { value: 'Line Spacing: 1.5', enabled: true },
-            { value: 'Numbering: BAB [ROMAN]', enabled: true }
-          ]},
-          { id: 'sub_judul', name: 'Sub Judul', rules: [
-            { value: 'Font: Times New Roman, 14pt, Bold', enabled: true },
-            { value: 'Case: Capitalize Each Word', enabled: true },
-            { value: 'Alignment: Left', enabled: true },
-            { value: 'Line Spacing: 1.5', enabled: true },
-            { value: 'Indent Hanging: 1.27cm', enabled: true }
-          ]},
-          { id: 'paragraf', name: 'Paragraf', rules: [
-            { value: 'Font: Times New Roman, 12pt', enabled: true },
-            { value: 'Alignment: Justify', enabled: true },
-            { value: 'Line Spacing: 1.5', enabled: true },
-            { value: 'First Line Indent: 1.27cm', enabled: true }
-          ]},
-          { id: 'kutipan', name: 'Kutipan', rules: [
-            { value: 'Font: Times New Roman, 12pt', enabled: true },
-            { value: 'Alignment: Justify', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Indent Left/Right: 1.27cm', enabled: true }
-          ]},
-          { id: 'gambar', name: 'Gambar', rules: [
-            { value: 'Layout: In Line With Text', enabled: true },
-            { value: 'Alignment: Center', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Not Full Page', enabled: true }
-          ]},
-          { id: 'caption_gambar', name: 'Caption Gambar', rules: [
-            { value: 'Font: Times New Roman, 12pt, Bold', enabled: true },
-            { value: 'Alignment: Center', enabled: true },
-            { value: 'Position: Below Image', enabled: true },
-            { value: 'Numbering: Gambar [BAB].[NOMOR]', enabled: true }
-          ]},
-          { id: 'tabel', name: 'Tabel', rules: [
-            { value: 'Alignment: Center', enabled: true },
-            { value: 'Not Full Page', enabled: true },
-            { value: 'Has Repeating Header', enabled: true }
-          ]},
-          { id: 'caption_tabel', name: 'Caption Tabel', rules: [
-            { value: 'Font: Times New Roman, 12pt, Bold', enabled: true },
-            { value: 'Alignment: Center', enabled: true },
-            { value: 'Position: Above Table', enabled: true },
-            { value: 'Numbering: Tabel [BAB].[NOMOR]', enabled: true }
-          ]},
-          { id: 'blok_kode', name: 'Blok Kode', rules: [
-            { value: 'Font: Courier New, 10pt', enabled: true },
-            { value: 'Alignment: Left', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Indent Left: 1cm', enabled: true }
-          ]},
-          { id: 'rumus', name: 'Rumus', rules: [
-            { value: 'Font: Cambria Math, 12pt', enabled: true },
-            { value: 'Alignment: Justify', enabled: true },
-            { value: 'Line Spacing: 1.5', enabled: true },
-            { value: 'Numbering: ([BAB].[NOMOR])', enabled: true }
-          ]},
-          { id: 'footnote', name: 'Footnote', rules: [
-            { value: 'Font: Times New Roman, 10pt', enabled: true },
-            { value: 'Alignment: Left', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Continuous Numbering', enabled: true }
-          ]},
-          { id: 'daftar_pustaka', name: 'Daftar Pustaka', rules: [
-            { value: 'Font: Times New Roman, 12pt', enabled: true },
-            { value: 'Alignment: Justify', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Alphabetized', enabled: true }
-          ]},
-          { id: 'nomor_halaman', name: 'Nomor Halaman', rules: [
-            { value: 'Font: Times New Roman, 12pt', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Page Number Field', enabled: true }
-          ]}
-        ]
-      }
-    },
-    { 
-      id: 2, 
-      name: 'Panduan_TA_2023.docx', 
-      version: '2024.1', 
-      rules: 70, 
-      date: '2023-09-01', 
-      isActive: false,
-      fileUrl: '/templates/[TEMPLATE] BUKU TA - TESIS.docx',
-      formatRules: {
-        page_settings: [
-          { id: 'a4_portrait', description: 'A4 Portrait (Dokumen Utama)', rules: [
-            { value: 'Paper Size: A4', enabled: true },
-            { value: 'Orientation: Portrait', enabled: true },
-            { value: 'Margin Top: 3cm', enabled: true },
-            { value: 'Margin Left: 3cm', enabled: true },
-            { value: 'Margin Bottom: 2.5cm', enabled: true },
-            { value: 'Margin Right: 2.5cm', enabled: true }
-          ]},
-          { id: 'a4_landscape', description: 'A4 Landscape (Lampiran)', rules: [
-            { value: 'Paper Size: A4', enabled: true },
-            { value: 'Orientation: Landscape', enabled: true },
-            { value: 'Margin Top: 3cm', enabled: true },
-            { value: 'Margin Left: 2.5cm', enabled: true },
-            { value: 'Margin Bottom: 2.5cm', enabled: true },
-            { value: 'Margin Right: 3cm', enabled: true }
-          ]},
-          { id: 'a3_landscape', description: 'A3 Landscape (Lampiran Khusus)', rules: [
-            { value: 'Paper Size: A3', enabled: true },
-            { value: 'Orientation: Landscape', enabled: true },
-            { value: 'Margin Top: 3cm', enabled: true },
-            { value: 'Margin Left: 3cm', enabled: true },
-            { value: 'Margin Bottom: 2.5cm', enabled: true },
-            { value: 'Margin Right: 2.5cm', enabled: true }
-          ]}
-        ],
-        components: [
-          { id: 'judul_bab', name: 'Judul Bab', rules: [
-            { value: 'Font: Times New Roman, 14pt, Bold', enabled: true },
-            { value: 'Case: Uppercase', enabled: true },
-            { value: 'Alignment: Center', enabled: true },
-            { value: 'Line Spacing: 1.5', enabled: true },
-            { value: 'Numbering: BAB [ROMAN]', enabled: true }
-          ]},
-          { id: 'sub_judul', name: 'Sub Judul', rules: [
-            { value: 'Font: Times New Roman, 12pt, Bold', enabled: true },
-            { value: 'Case: Capitalize Each Word', enabled: true },
-            { value: 'Alignment: Left', enabled: true },
-            { value: 'Line Spacing: 1.5', enabled: true },
-            { value: 'Indent Hanging: 1.27cm', enabled: true }
-          ]},
-          { id: 'paragraf', name: 'Paragraf', rules: [
-            { value: 'Font: Times New Roman, 12pt', enabled: true },
-            { value: 'Alignment: Justify', enabled: true },
-            { value: 'Line Spacing: 1.15', enabled: true },
-            { value: 'First Line Indent: 1.27cm', enabled: true }
-          ]},
-          { id: 'kutipan', name: 'Kutipan', rules: [
-            { value: 'Font: Times New Roman, 12pt', enabled: true },
-            { value: 'Alignment: Justify', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Indent Left/Right: 1.27cm', enabled: true }
-          ]},
-          { id: 'gambar', name: 'Gambar', rules: [
-            { value: 'Layout: In Line With Text', enabled: true },
-            { value: 'Alignment: Center', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Not Full Page', enabled: true }
-          ]},
-          { id: 'caption_gambar', name: 'Caption Gambar', rules: [
-            { value: 'Font: Times New Roman, 12pt, Bold', enabled: true },
-            { value: 'Alignment: Center', enabled: true },
-            { value: 'Position: Below Image', enabled: true },
-            { value: 'Numbering: Gambar [BAB].[NOMOR]', enabled: true }
-          ]},
-          { id: 'tabel', name: 'Tabel', rules: [
-            { value: 'Alignment: Center', enabled: true },
-            { value: 'Not Full Page', enabled: true },
-            { value: 'Has Repeating Header', enabled: true }
-          ]},
-          { id: 'caption_tabel', name: 'Caption Tabel', rules: [
-            { value: 'Font: Times New Roman, 12pt, Bold', enabled: true },
-            { value: 'Alignment: Center', enabled: true },
-            { value: 'Position: Above Table', enabled: true },
-            { value: 'Numbering: Tabel [BAB].[NOMOR]', enabled: true }
-          ]},
-          { id: 'blok_kode', name: 'Blok Kode', rules: [
-            { value: 'Font: Courier New, 10pt', enabled: true },
-            { value: 'Alignment: Left', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Indent Left: 1cm', enabled: true }
-          ]},
-          { id: 'rumus', name: 'Rumus', rules: [
-            { value: 'Font: Cambria Math, 12pt', enabled: true },
-            { value: 'Alignment: Justify', enabled: true },
-            { value: 'Line Spacing: 1.5', enabled: true },
-            { value: 'Numbering: ([BAB].[NOMOR])', enabled: true }
-          ]},
-          { id: 'footnote', name: 'Footnote', rules: [
-            { value: 'Font: Times New Roman, 10pt', enabled: true },
-            { value: 'Alignment: Left', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Continuous Numbering', enabled: true }
-          ]},
-          { id: 'daftar_pustaka', name: 'Daftar Pustaka', rules: [
-            { value: 'Font: Times New Roman, 12pt', enabled: true },
-            { value: 'Alignment: Justify', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Alphabetized', enabled: true }
-          ]},
-          { id: 'nomor_halaman', name: 'Nomor Halaman', rules: [
-            { value: 'Font: Times New Roman, 12pt', enabled: true },
-            { value: 'Line Spacing: 1.0', enabled: true },
-            { value: 'Page Number Field', enabled: true }
-          ]}
-        ]
-      }
-    },
-  ]);
+  const [templates, setTemplates] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    fetchTemplates();
+    fetchMinScore();
+  }, []);
+
+  const fetchTemplates = async () => {
+    try {
+      setLoading(true);
+      const data = await templateService.getAllTemplates();
+      setTemplates(data);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMinScore = async () => {
+    try {
+      const data = await settingsService.getMinScore();
+      setMinScore(data.score);
+      setTempMinScore(data.score);
+    } catch (error) {
+      console.error('Error fetching min score:', error);
+    }
+  };
+
   const [editDialog, setEditDialog] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [newName, setNewName] = useState('');
@@ -336,8 +131,8 @@ export default function TemplatePanduan() {
   const handleEditRule = (type, parentId, ruleIndex, ruleValue) => {
     const template = templates.find(t => t.id === selectedTemplateId);
     const rules = type === 'page_settings'
-      ? template?.formatRules.page_settings.find(s => s.id === parentId)?.rules
-      : template?.formatRules.components.find(c => c.id === parentId)?.rules;
+      ? template?.formatRules?.page_settings?.find(s => s.id === parentId)?.rules
+      : template?.formatRules?.components?.find(c => c.id === parentId)?.rules;
     
     setLocalRules(rules || []);
     setEditingRule({ type, parentId, ruleIndex });
@@ -355,11 +150,11 @@ export default function TemplatePanduan() {
             ...t,
             formatRules: {
               ...t.formatRules,
-              page_settings: t.formatRules.page_settings.map(s => 
+              page_settings: t.formatRules?.page_settings?.map(s => 
                 s.id === parentId 
                   ? { ...s, rules: s.rules.map((r, i) => i === ruleIndex ? { ...r, enabled: !r.enabled } : r) }
                   : s
-              )
+              ) || []
             }
           };
         } else {
@@ -367,11 +162,11 @@ export default function TemplatePanduan() {
             ...t,
             formatRules: {
               ...t.formatRules,
-              components: t.formatRules.components.map(c => 
+              components: t.formatRules?.components?.map(c => 
                 c.id === parentId 
                   ? { ...c, rules: c.rules.map((r, i) => i === ruleIndex ? { ...r, enabled: !r.enabled } : r) }
                   : c
-              )
+              ) || []
             }
           };
         }
@@ -394,9 +189,9 @@ export default function TemplatePanduan() {
             ...t,
             formatRules: {
               ...t.formatRules,
-              page_settings: t.formatRules.page_settings.map(s => 
+              page_settings: t.formatRules?.page_settings?.map(s => 
                 s.id === editingRule.parentId ? { ...s, rules: updatedRules } : s
-              )
+              ) || []
             }
           };
         } else {
@@ -404,9 +199,9 @@ export default function TemplatePanduan() {
             ...t,
             formatRules: {
               ...t.formatRules,
-              components: t.formatRules.components.map(c => 
+              components: t.formatRules?.components?.map(c => 
                 c.id === editingRule.parentId ? { ...c, rules: updatedRules } : c
-              )
+              ) || []
             }
           };
         }
@@ -424,10 +219,15 @@ export default function TemplatePanduan() {
     setShowSaveSuccess(true);
   };
 
-  const handleSaveScore = () => {
-    setMinScore(tempMinScore);
-    setScoreChanged(false);
-    setShowSaveSuccess(true);
+  const handleSaveScore = async () => {
+    try {
+      await settingsService.updateMinScore(tempMinScore);
+      setMinScore(tempMinScore);
+      setScoreChanged(false);
+      setShowSaveSuccess(true);
+    } catch (error) {
+      console.error('Error saving min score:', error);
+    }
   };
 
   return (
@@ -972,8 +772,8 @@ export default function TemplatePanduan() {
                 const template = templates.find(t => t.id === selectedTemplateId);
                 if (!template) return '';
                 const allRules = [
-                  ...template.formatRules.page_settings.flatMap(s => s.rules),
-                  ...template.formatRules.components.flatMap(c => c.rules)
+                  ...(template.formatRules?.page_settings?.flatMap(s => s.rules) || []),
+                  ...(template.formatRules?.components?.flatMap(c => c.rules) || [])
                 ];
                 const activeRules = allRules.filter(r => r.enabled).length;
                 const totalRules = allRules.length;
@@ -1008,7 +808,7 @@ export default function TemplatePanduan() {
           <Box>
             <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>Page Settings</Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'stretch' }}>
-              {templates.find(t => t.id === selectedTemplateId)?.formatRules.page_settings.map((setting) => (
+              {templates.find(t => t.id === selectedTemplateId)?.formatRules?.page_settings?.map((setting) => (
                 <Box key={setting.id} sx={{ flex: '0 0 calc(33.333% - 11px)', display: 'flex' }}>
                   <Card sx={{ 
                     width: '100%',
@@ -1055,7 +855,7 @@ export default function TemplatePanduan() {
           <Box>
             <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>Components</Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'stretch' }}>
-              {templates.find(t => t.id === selectedTemplateId)?.formatRules.components.map((component) => (
+              {templates.find(t => t.id === selectedTemplateId)?.formatRules?.components?.map((component) => (
                 <Box key={component.id} sx={{ flex: '0 0 calc(33.333% - 11px)', display: 'flex' }}>
                   <Card sx={{ width: '100%', border: '1px solid #E2E8F0', boxShadow: 'none', display: 'flex', flexDirection: 'column' }}>
                     <CardContent sx={{ flex: 1, overflow: 'auto' }}>

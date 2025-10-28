@@ -1,7 +1,8 @@
 import React from 'react';
-import { Paper, Typography, Box, Stack, IconButton, Chip, Tooltip } from '@mui/material';
+import { Paper, Typography, Box, Stack, IconButton, Tooltip } from '@mui/material';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
-import { CheckCircleOutline, ErrorOutline, HourglassEmptyOutlined, CancelOutlined, DownloadOutlined, CheckOutlined, BlockOutlined } from '@mui/icons-material';
+import { CancelOutlined, DownloadOutlined } from '@mui/icons-material';
+import StatusChip from './StatusChip';
 
 const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload, showCancelButton = true, additionalInfo, isAdminView = false, judulTA, nama, nrp, jurusan, skor }) => (
   <Paper
@@ -75,57 +76,7 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
           </>
         )}
       </Box>
-      <Tooltip 
-        title={
-          status === 'Dalam Antrian' ? 'Dokumen sedang menunggu diproses' : 
-          status === 'Diproses' ? 'Sistem sedang memvalidasi dokumen' : 
-          status === 'Dibatalkan' ? 'Validasi dokumen telah dibatalkan' : 
-          status === 'Lolos' ? 'Dokumen lulus validasi' :
-          status === 'Tidak Lolos' ? 'Dokumen tidak lulus validasi' : 'Validasi dokumen selesai'
-        } 
-        arrow
-        componentsProps={{
-          tooltip: {
-            sx: {
-              maxWidth: 250,
-              textAlign: 'center'
-            }
-          }
-        }}
-      >
-        <Chip 
-          icon={
-            status === 'Lolos' ? <CheckCircleOutline /> : 
-            status === 'Tidak Lolos' ? <ErrorOutline /> :
-            status === 'Diproses' ? <HourglassEmptyOutlined /> :
-            status === 'Dibatalkan' ? <BlockOutlined /> : 
-            <HourglassEmptyOutlined />
-          }
-          label={status} 
-          color={statusColor} 
-          size="small" 
-          variant="outlined"
-          sx={{ 
-            width: 200,
-            fontWeight: 500,
-            bgcolor: 
-              statusColor === 'info' ? '#DBEAFE' : 
-              statusColor === 'warning' ? '#FEF3C7' : 
-              statusColor === 'error' ? '#FEE2E2' : 
-              statusColor === 'success' ? '#D1FAE5' : '#F3F4F6',
-            color: 
-              statusColor === 'info' ? '#1E40AF' : 
-              statusColor === 'warning' ? '#92400E' : 
-              statusColor === 'error' ? '#991B1B' : 
-              statusColor === 'success' ? '#065F46' : '#6B7280',
-            borderColor: 
-              statusColor === 'info' ? '#3B82F6' : 
-              statusColor === 'warning' ? '#F59E0B' : 
-              statusColor === 'error' ? '#EF4444' : 
-              statusColor === 'success' ? '#10B981' : '#D1D5DB'
-          }} 
-        />
-      </Tooltip>
+      <StatusChip status={status} />
       <Box sx={{ width: 40, display: 'flex', justifyContent: 'center' }}>
         {status === 'Dalam Antrian' && showCancelButton && (
           <Tooltip title="Batalkan" arrow>

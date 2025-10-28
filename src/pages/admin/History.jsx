@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Stack, Paper, Pagination, Box } from '@mui/material';
+import Loading from '../../components/shared/ui/Loading';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useHeader } from '../../context/HeaderContext';
 import FilterBar from '../../components/shared/ui/FilterBar';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 import DataInfo from '../../components/shared/ui/DataInfo';
-import HistoryList from '../../components/admin/history/HistoryList';
-import { getAllValidations } from '../../data/mockData';
+import HistoryList from '../../components/shared/ui/HistoryList';
+import { validationService, handleApiError } from '../../services';
 
 const History = () => {
   const { setHeaderInfo } = useHeader();
@@ -28,11 +29,26 @@ const History = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [allData, setAllData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setHeaderInfo({ title: 'Riwayat Validasi' });
+    fetchValidations();
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
+
+  const fetchValidations = async () => {
+    try {
+      setLoading(true);
+      const data = await validationService.getAllValidations();
+      setAllData(data.filter(item => item.status === 'Lolos' || item.status === 'Tidak Lolos' || item.status === 'Dalam Antrian' || item.status === 'Diproses'));
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     setFilterStatus(statusFromUrl);
@@ -69,7 +85,7 @@ const History = () => {
     setShowSuccess(true);
   };
 
-  let filteredData = getAllValidations().filter(item => item.status === 'Lolos' || item.status === 'Tidak Lolos' || item.status === 'Dalam Antrian' || item.status === 'Diproses');
+  let filteredData = allData;
 
   if (filterStatus !== 'Semua') {
     if (filterStatus === 'Menunggu') {
@@ -137,6 +153,8 @@ const History = () => {
     setPage(1);
   };
 
+  if (loading) return <Loading message="Memuat riwayat validasi..." />;
+
   return (
     <Stack spacing={3}>
       <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
@@ -172,6 +190,7 @@ const History = () => {
           data={paginatedData}
           onDetail={(id) => navigate(`/admin/detail/${id}`)}
           onDownload={handleDownloadCertificate}
+          isAdminView={true}
         />
 
         {/* Pagination */}

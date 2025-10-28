@@ -1,19 +1,25 @@
+import { useState, useEffect } from 'react';
 import { Box, Grid } from '@mui/material';
 import { FileCopyOutlined, CheckCircleOutline, ErrorOutlineOutlined, HourglassEmptyOutlined } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import StatCard from '../../shared/ui/StatCard';
-import { getAllValidations } from '../../../data/mockData';
+import { dashboardService } from '../../../services';
 
 export default function StatsCards() {
   const navigate = useNavigate();
-  const allValidations = getAllValidations();
-  
-  const stats = {
-    waiting: allValidations.filter(v => v.status === 'Dalam Antrian' || v.status === 'Diproses').length,
-    passed: allValidations.filter(v => v.status === 'Lolos').length,
-    needsFix: allValidations.filter(v => v.status === 'Tidak Lolos').length
-  };
-  stats.total = stats.waiting + stats.passed + stats.needsFix;
+  const [stats, setStats] = useState({ total: 0, waiting: 0, passed: 0, needsFix: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await dashboardService.getAdminStats();
+        setStats(data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+    fetchStats();
+  }, []);
 
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 3 }}>

@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack, Alert, Typography } from '@mui/material';
+import Loading from '../../components/shared/ui/Loading';
 import { useHeader } from '../../context/HeaderContext';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -8,14 +9,15 @@ import ValidationActions from '../../components/mahasiswa/dashboard/ValidationAc
 import ValidationHistory from '../../components/mahasiswa/dashboard/ValidationHistory';
 import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
-import { getValidationsByUser } from '../../data/mockData';
+import { validationService, handleApiError } from '../../services';
 
 export default function MahasiswaDashboard() {
   const { setHeaderInfo } = useHeader();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
   
-  const historyData = getValidationsByUser(user);
+  const [historyData, setHistoryData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -36,11 +38,17 @@ export default function MahasiswaDashboard() {
     setOpenDialog(true);
   };
 
-  const handleConfirmCancel = () => {
-    // Logic untuk membatalkan dokumen
-    setOpenDialog(false);
-    setSelectedDoc(null);
-    setShowCancelSuccess(true);
+  const handleConfirmCancel = async () => {
+    try {
+      const item = historyData.find(v => v.filename === selectedDoc);
+      await validationService.cancelValidation(item.id);
+      setOpenDialog(false);
+      setSelectedDoc(null);
+      setShowCancelSuccess(true);
+      fetchValidations();
+    } catch (error) {
+      handleApiError(error);
+    }
   };
 
   const handleDownloadCertificate = () => {
@@ -49,13 +57,24 @@ export default function MahasiswaDashboard() {
   };
   
   useEffect(() => {
-    setHeaderInfo({
-      title: 'Dashboard',
-    });
-    return () => {
-      setHeaderInfo({ title: '', subtitle: '' });
-    };
-  }, [setHeaderInfo]);
+    setHeaderInfo({ title: 'Dashboard' });
+    fetchValidations();
+    return () => setHeaderInfo({ title: '' });
+  }, [setHeaderInfo, user]);
+
+  const fetchValidations = async () => {
+    try {
+      setLoading(true);
+      const data = await validationService.getValidationsByUser(user);
+      setHistoryData(data);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <Loading message="Memuat dashboard..." />;
 
   return (
     <Stack spacing={3}>

@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Stack, Paper, Pagination, Box } from '@mui/material';
+import Loading from '../../components/shared/ui/Loading';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useHeader } from '../../context/HeaderContext';
 import { useSelector } from 'react-redux';
 import FilterBar from '../../components/shared/ui/FilterBar';
 import DataInfo from '../../components/shared/ui/DataInfo';
-import HistoryList from '../../components/mahasiswa/history/HistoryList';
+import HistoryList from '../../components/shared/ui/HistoryList';
 import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
-import { getValidationsByUser } from '../../data/mockData';
+import { validationService, handleApiError } from '../../services';
 
 export default function History() {
   const { setHeaderInfo } = useHeader();
@@ -28,11 +29,26 @@ export default function History() {
   const [showCancelSuccess, setShowCancelSuccess] = useState(false);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [validationHistoryData, setValidationHistoryData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setHeaderInfo({ title: 'Riwayat Validasi' });
+    fetchValidations();
     return () => setHeaderInfo({ title: '' });
-  }, [setHeaderInfo]);
+  }, [setHeaderInfo, user]);
+
+  const fetchValidations = async () => {
+    try {
+      setLoading(true);
+      const data = await validationService.getValidationsByUser(user);
+      setValidationHistoryData(data);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     setFilterStatus(statusFromUrl);
@@ -61,11 +77,17 @@ export default function History() {
     setOpenDialog(true);
   };
 
-  const handleConfirmCancel = () => {
-    // Logic untuk membatalkan dokumen
-    setOpenDialog(false);
-    setSelectedDoc(null);
-    setShowCancelSuccess(true);
+  const handleConfirmCancel = async () => {
+    try {
+      const item = validationHistoryData.find(v => v.filename === selectedDoc);
+      await validationService.cancelValidation(item.id);
+      setOpenDialog(false);
+      setSelectedDoc(null);
+      setShowCancelSuccess(true);
+      fetchValidations();
+    } catch (error) {
+      handleApiError(error);
+    }
   };
 
   const handleDownloadCertificate = () => {
@@ -73,9 +95,6 @@ export default function History() {
     setShowSuccess(true);
   };
 
-  const validationHistoryData = getValidationsByUser(user);
-  
-  // Filter dan sort data
   let filteredData = validationHistoryData;
   
   // Filter by status
@@ -136,6 +155,8 @@ export default function History() {
     setRowsPerPage(event.target.value);
     setPage(1);
   };
+
+  if (loading) return <Loading message="Memuat riwayat validasi..." />;
 
   return (
     <Stack spacing={3}>

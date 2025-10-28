@@ -1,41 +1,6 @@
-// src/components/login/BrandingPanel.jsx
-
 import { Box, Typography, Stack, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { FactCheckOutlined, SchoolOutlined, BuildOutlined } from '@mui/icons-material';
-
-// Komponen SVG untuk gelombang di bagian bawah
-const Wave = () => (
-  <Box
-    sx={{
-      position: 'absolute',
-      bottom: -1,
-      left: 0,
-      width: '100%',
-      overflow: 'hidden',
-      lineHeight: 0,
-      transform: 'rotate(180deg)',
-    }}
-  >
-    <svg
-      data-name="Layer 1"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 1200 120"
-      preserveAspectRatio="none"
-      style={{
-        position: 'relative',
-        display: 'block',
-        width: 'calc(100% + 1.3px)',
-        height: '130px',
-      }}
-    >
-      <path
-        d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
-        // KUNCI: Warna gelombang diubah menjadi warna gelap yang subtil
-        style={{ fill: '#1E293B' }}
-      ></path>
-    </svg>
-  </Box>
-);
+import Wave from '../ui/Wave';
 
 const BrandingPanel = () => {
   return (
@@ -49,11 +14,10 @@ const BrandingPanel = () => {
         height: '100%',
         p: { xs: 3, md: 5 },
         color: 'white',
-        // KUNCI: Latar belakang diubah menjadi GRADIENT BIRU GELAP
         background: 'linear-gradient(160deg, #111827 0%, #1E40AF 100%)',
       }}
     >
-      <Wave />
+      <Wave height="130px" />
 
       <Stack spacing={4} sx={{ zIndex: 1 }}>
         <Stack direction="row" spacing={2} alignItems="center">

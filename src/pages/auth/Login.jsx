@@ -1,13 +1,13 @@
 // src/pages/auth/Login.jsx
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Paper, Grid } from '@mui/material';
 import BrandingPanel from '../../components/shared/auth/BrandingPanel';
 import LoginForm from '../../components/shared/auth/LoginForm';
-
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../../redux/userSlice';
+import { authService, storage, handleApiError } from '../../services';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,23 +17,22 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState({});
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     const newErrors = {};
     if (!nrp) newErrors.nrp = 'NRP tidak boleh kosong.';
     if (!password) newErrors.password = 'Password tidak boleh kosong.';
     setError(newErrors);
     if (Object.keys(newErrors).length === 0) {
-
-      const role = nrp.toLowerCase() === 'admin' ? 'admin' : 'mahasiswa';
-      // Kirim data ke Redux store
-      dispatch(loginSuccess({ user: nrp, role: role }));
-
-      // Arahkan berdasarkan peran
-      if (role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/mahasiswa'); // default untuk mahasiswa
+      try {
+        const response = await authService.login(nrp, password);
+        storage.setToken(response.token);
+        storage.setUser(response.user);
+        dispatch(loginSuccess({ user: response.user.nrp, role: response.user.role }));
+        navigate(response.user.role === 'admin' ? '/admin' : '/mahasiswa');
+      } catch (error) {
+        const errorInfo = handleApiError(error);
+        setError({ general: errorInfo.message });
       }
     }
   };

@@ -1,7 +1,7 @@
 import { Stack } from '@mui/material';
-import HistoryItem from '../../shared/ui/HistoryItem';
+import HistoryItem from './HistoryItem';
 
-export default function HistoryList({ data, onDetail, onDownload }) {
+export default function HistoryList({ data, onDetail, onDownload, onCancel, isAdminView = false }) {
   return (
     <Stack spacing={2}>
       {data.map((item) => (
@@ -10,6 +10,7 @@ export default function HistoryList({ data, onDetail, onDownload }) {
           judulTA={item.judulTA}
           filename={item.filename}
           date={item.date}
+          size={item.size}
           nama={item.nama}
           nrp={item.nrp}
           jurusan={item.jurusan}
@@ -20,8 +21,9 @@ export default function HistoryList({ data, onDetail, onDownload }) {
           isPassedValidation={item.isPassedValidation}
           onDetail={() => onDetail(item.id)}
           onDownload={onDownload}
-          showCancelButton={false}
-          isAdminView={true}
+          onCancel={onCancel ? () => onCancel(item.filename) : undefined}
+          showCancelButton={!isAdminView}
+          isAdminView={isAdminView}
         />
       ))}
     </Stack>
