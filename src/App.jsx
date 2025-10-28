@@ -31,7 +31,7 @@ function App() {
     const fetchUserName = async () => {
       if (role !== 'admin' && user) {
         try {
-          const userData = await userService.getUserProfile(user);
+          const userData = await userService.getUserByNrp(user);
           setDisplayName(userData.nama);
         } catch (error) {
           setDisplayName('Mahasiswa');
