@@ -32,16 +32,17 @@ import Login from './pages/auth/Login';
 
 // Import halaman mahasiswa
 import MahasiswaDashboard from './pages/mahasiswa/Dashboard';
-import Upload from './pages/mahasiswa/Upload';
-import History from './pages/mahasiswa/History';
+import CekDokumen from './pages/mahasiswa/CekDokumen';
+import ValidasiBukuLengkap from './pages/mahasiswa/ValidasiBukuLengkap';
 import DetailValidation from './pages/mahasiswa/DetailValidation';
 import MahasiswaTemplatePanduan from './pages/mahasiswa/TemplatePanduan';
 
 // Import halaman admin
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminTemplatePanduan from './pages/admin/TemplatePanduan';
-import AdminHistory from './pages/admin/History';
+import RiwayatValidasi from './pages/admin/RiwayatValidasi';
 import AdminDetailValidation from './pages/admin/DetailValidation';
+import HapusRiwayat from './pages/admin/HapusRiwayat';
 
 // Import halaman error
 import NotFound from './pages/NotFound';
@@ -59,9 +60,9 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <MahasiswaDashboard /> }, // Dashboard mahasiswa
-      { path: 'upload', element: <Upload /> }, // Upload dokumen
-      { path: 'template', element: <MahasiswaTemplatePanduan /> }, // Lihat template
-      { path: 'history', element: <History /> }, // Riwayat validasi
+      { path: 'upload', element: <CekDokumen /> }, // Cek dokumen
+      { path: 'upload-buku', element: <ValidasiBukuLengkap /> }, // Validasi buku lengkap
+      { path: 'template', element: <MahasiswaTemplatePanduan /> }, // Template & panduan
       { path: 'detail/:id', element: <DetailValidation /> } // Detail validasi
     ],
   },
@@ -71,9 +72,10 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <AdminDashboard /> }, // Dashboard admin
-      { path: 'template', element: <AdminTemplatePanduan /> }, // Kelola template
-      { path: 'history', element: <AdminHistory /> }, // Semua riwayat validasi
+      { path: 'template', element: <AdminTemplatePanduan /> }, // Template panduan
+      { path: 'history', element: <RiwayatValidasi /> }, // Riwayat validasi
       { path: 'detail/:id', element: <AdminDetailValidation /> }, // Detail validasi
+      { path: 'hapus-riwayat', element: <HapusRiwayat /> }, // Hapus riwayat
     ],
   },
   {

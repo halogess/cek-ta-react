@@ -44,8 +44,36 @@ const statusConfig = {
   }
 };
 
-export default function StatusChip({ status }) {
+export default function StatusChip({ status, size = 'medium' }) {
   const config = statusConfig[status] || statusConfig['Dalam Antrian'];
+  
+  if (size === 'small') {
+    return (
+      <Tooltip title={config.tooltip} arrow>
+        <Chip 
+          icon={config.icon}
+          label={status} 
+          size="small" 
+          variant="outlined"
+          sx={{ 
+            height: 20,
+            fontSize: '0.7rem',
+            fontWeight: 500,
+            bgcolor: config.bgcolor,
+            color: config.textColor,
+            borderColor: config.borderColor,
+            '& .MuiChip-icon': {
+              fontSize: 14,
+              ml: 0.5
+            },
+            '& .MuiChip-label': {
+              px: 0.5
+            }
+          }} 
+        />
+      </Tooltip>
+    );
+  }
   
   return (
     <Tooltip title={config.tooltip} arrow>

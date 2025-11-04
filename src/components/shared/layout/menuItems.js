@@ -10,19 +10,22 @@ import {
   UploadOutlined,
   HistoryOutlined,
   DescriptionOutlined,
+  MenuBookOutlined,
+  DeleteOutlined,
 } from '@mui/icons-material';
 
 // Menu untuk mahasiswa
 export const mahasiswaMenuItems = [
   { text: 'Dashboard', icon: React.createElement(HomeOutlined), path: '/mahasiswa' },
-  { text: 'Unggah Dokumen', icon: React.createElement(UploadOutlined), path: '/mahasiswa/upload' },
+  { text: 'Cek Dokumen', icon: React.createElement(UploadOutlined), path: '/mahasiswa/upload' },
+  { text: 'Validasi Buku Lengkap', icon: React.createElement(MenuBookOutlined), path: '/mahasiswa/upload-buku' },
   { text: 'Template & Panduan', icon: React.createElement(DescriptionOutlined), path: '/mahasiswa/template' },
-  { text: 'Riwayat', icon: React.createElement(HistoryOutlined), path: '/mahasiswa/history' },
 ];
 
 // Menu untuk admin
 export const adminMenuItems = [
   { text: 'Dashboard', icon: React.createElement(HomeOutlined), path: '/admin' },
   { text: 'Template Panduan', icon: React.createElement(DescriptionOutlined), path: '/admin/template' },
-  { text: 'Riwayat Validasi', icon: React.createElement(HistoryOutlined), path: '/admin/history' },
+  { text: 'Riwayat Validasi Buku', icon: React.createElement(HistoryOutlined), path: '/admin/history' },
+  { text: 'Hapus Riwayat Validasi', icon: React.createElement(DeleteOutlined), path: '/admin/hapus-riwayat' },
 ];

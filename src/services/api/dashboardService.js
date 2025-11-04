@@ -27,6 +27,15 @@ export const dashboardService = {
   },
 
   /**
+   * Get dashboard data untuk mahasiswa (stats + recent history)
+   * @param {string} userId - NRP mahasiswa
+   * @returns {Promise} { dokumen: { stats, history }, buku: { stats, history } }
+   */
+  getMahasiswaDashboard: async (userId) => {
+    return apiClient.get(`/dashboard/mahasiswa/${userId}`);
+  },
+
+  /**
    * Get statistik error (untuk chart di admin dashboard)
    * @returns {Promise} Array of { name, count, percentage }
    */

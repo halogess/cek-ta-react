@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Stack, Button, Box, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import { Stack, Button, Box, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, Typography } from '@mui/material';
 import { ArrowBack, FileDownloadOutlined, PictureAsPdfOutlined } from '@mui/icons-material';
 import { useHeader } from '../../context/HeaderContext';
 import ValidationSummary from '../../components/mahasiswa/validation/ValidationSummary';
@@ -29,6 +29,7 @@ export default function DetailValidation() {
   const isPassedValidation = validation?.isPassedValidation || false;
   const queuePosition = validation?.queuePosition || 0;
   const hasValidationData = validation?.errorCount !== null && validation?.skor !== null;
+  const isBookValidation = validation?.type === 'book';
 
   useEffect(() => {
     setHeaderInfo({ title: 'Detail Validasi' });
@@ -105,32 +106,39 @@ export default function DetailValidation() {
 
       <StatusBanner status={documentStatus} queuePosition={queuePosition} onCancel={handleCancelClick} />
       
-      {documentStatus === 'Tidak Lolos' && <ValidationSummary errorCount={validation?.errorCount || 0} score={validation?.skor || 0} />}
+      {(documentStatus === 'Lolos' || documentStatus === 'Tidak Lolos') && hasValidationData && (
+        <>
+          {documentStatus === 'Tidak Lolos' && <ValidationSummary errorCount={validation?.errorCount || 0} score={validation?.skor || 0} />}
+          
+          <DocumentStructurePanel documentStructure={documentStructure} expanded={expanded} onExpand={handleChange} />
+          
+          {errors.length === 0 ? (
+            <Paper elevation={0} sx={{ p: 4, borderRadius: '12px', border: '2px solid #10B981', bgcolor: '#ECFDF5', textAlign: 'center' }}>
+              <Typography variant="h3" sx={{ mb: 1 }}>🎉</Typography>
+              <Typography variant="h5" fontWeight="600" color="#065F46" gutterBottom>Bagus!</Typography>
+              <Typography variant="body1" color="#047857">Tidak ada kesalahan yang ditemukan</Typography>
+            </Paper>
+          ) : (
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', lg: 'row' }, alignItems: 'stretch' }}>
+              <Box sx={{ flex: 1, width: '100%' }}>
+                <ErrorListPanel
+                  errors={errors}
+                  selectedError={selectedError}
+                  onSelectError={setSelectedError}
+                />
+              </Box>
 
-      {hasValidationData && documentStatus !== 'Dibatalkan' && (
-        <DocumentStructurePanel documentStructure={documentStructure} expanded={expanded} onExpand={handleChange} />
-      )}
-
-      {hasValidationData && (
-        <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', lg: 'row' }, alignItems: 'stretch' }}>
-        {/* Daftar Kesalahan dengan Rekomendasi */}
-        <Box sx={{ flex: 1, width: '100%' }}>
-          <ErrorListPanel
-            errors={errors}
-            selectedError={selectedError}
-            onSelectError={setSelectedError}
-          />
-        </Box>
-
-        <Box sx={{ flex: 1, width: '100%' }}>
-          <DocumentPreview 
-            selectedError={selectedError} 
-            totalErrors={errors.length}
-            onPrevious={() => setSelectedError(selectedError - 1)}
-            onNext={() => setSelectedError(selectedError + 1)}
-          />
-        </Box>
-      </Box>
+              <Box sx={{ flex: 1, width: '100%' }}>
+                <DocumentPreview 
+                  selectedError={selectedError} 
+                  totalErrors={errors.length}
+                  onPrevious={() => setSelectedError(selectedError - 1)}
+                  onNext={() => setSelectedError(selectedError + 1)}
+                />
+              </Box>
+            </Box>
+          )}
+        </>
       )}
 
       <Dialog open={openCancelDialog} onClose={() => setOpenCancelDialog(false)}>

@@ -22,15 +22,15 @@ export default function UploadFormCard({
 
         {hasQueuedDoc && (
           <Alert severity="error" sx={{ borderRadius: '12px' }}>
-            <Typography fontWeight="medium">Tidak dapat mengunggah dokumen baru</Typography>
+            <Typography fontWeight="medium">Tidak dapat cek dokumen baru</Typography>
             <Typography variant="body2">Anda memiliki dokumen dalam antrian atau sedang diproses. Batalkan dokumen dalam antrian atau tunggu hingga proses selesai.</Typography>
           </Alert>
         )}
 
         {uploadSuccess && (
           <Alert severity="success" sx={{ borderRadius: '12px' }}>
-            <Typography fontWeight="medium">Dokumen berhasil diunggah!</Typography>
-            <Typography variant="body2">Proses validasi akan dimulai. Anda akan menerima notifikasi setelah selesai.</Typography>
+            <Typography fontWeight="medium">Dokumen berhasil disubmit!</Typography>
+            <Typography variant="body2">Proses cek dokumen akan dimulai. Anda akan menerima notifikasi setelah selesai.</Typography>
           </Alert>
         )}
 
@@ -58,7 +58,7 @@ export default function UploadFormCard({
           onClick={onUpload}
           sx={{ backgroundColor: isDisabled ? '#A5B4FC' : 'primary.main' }}
         >
-          Mulai Validasi
+          Mulai Cek Dokumen
         </Button>
       </Stack>
     </Paper>

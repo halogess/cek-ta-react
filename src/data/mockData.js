@@ -38,12 +38,90 @@ export const mockUsers = [
     id: 5,
     nrp: '5025201005',
     nama: 'Eko Prasetyo',
-    jurusan: 'Teknik Komputer',
+    jurusan: 'Teknik Industri',
     email: 'eko.prasetyo@student.its.ac.id'
+  },
+  {
+    id: 6,
+    nrp: '5025201006',
+    nama: 'Rina Wijaya',
+    jurusan: 'Teknik Elektro',
+    email: 'rina.wijaya@student.its.ac.id'
+  },
+  {
+    id: 7,
+    nrp: '5025201007',
+    nama: 'Fajar Nugroho',
+    jurusan: 'DKV',
+    email: 'fajar.nugroho@student.its.ac.id'
+  },
+  {
+    id: 8,
+    nrp: '5025201008',
+    nama: 'Maya Sari',
+    jurusan: 'Desain Produk',
+    email: 'maya.sari@student.its.ac.id'
   }
 ];
 
-export const mockValidations = [
+// Helper function untuk generate data validasi dokumen
+const generateDocValidations = () => {
+  const statuses = ['Lolos', 'Tidak Lolos', 'Dibatalkan'];
+  const users = mockUsers.map(u => ({ id: u.id, nrp: u.nrp, nama: u.nama, jurusan: u.jurusan, judul: u.email.split('@')[0] }));
+  
+  const generateDate = (daysAgo) => {
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    return date.toISOString().split('T')[0];
+  };
+  
+  const validations = [];
+  let diprosesAdded = false;
+  const usersWithQueue = [0, 1, 2, 3]; // User index yang punya antrian
+  
+  users.forEach((user, userIndex) => {
+    let hasQueueForUser = false;
+    
+    for (let i = 0; i < 20; i++) {
+      let status;
+      
+      if (!diprosesAdded && userIndex === 0 && i === 0) {
+        status = 'Diproses';
+        diprosesAdded = true;
+        hasQueueForUser = true;
+      } else if (!hasQueueForUser && usersWithQueue.includes(userIndex) && i === 1) {
+        status = 'Dalam Antrian';
+        hasQueueForUser = true;
+      } else {
+        status = statuses[i % 3];
+      }
+      
+      validations.push({
+        id: userIndex * 20 + i + 1,
+        userId: user.id,
+        nrp: user.nrp,
+        nama: user.nama,
+        jurusan: user.jurusan,
+        judulTA: user.judul,
+        filename: `Dokumen_${i + 1}_${user.nama.split(' ')[0]}.docx`,
+        date: generateDate(i * 2 + userIndex),
+        size: `${(1.5 + Math.random() * 2).toFixed(1)} MB`,
+        status: status,
+        statusColor: status === 'Lolos' ? 'success' : status === 'Tidak Lolos' ? 'error' : status === 'Dalam Antrian' ? 'info' : status === 'Diproses' ? 'warning' : 'default',
+        errorCount: status === 'Tidak Lolos' ? Math.floor(Math.random() * 10) + 1 : (status === 'Dalam Antrian' || status === 'Diproses') ? null : 0,
+        skor: status === 'Lolos' ? Math.floor(Math.random() * 20) + 80 : status === 'Tidak Lolos' ? Math.floor(Math.random() * 30) + 40 : null,
+        isPassedValidation: status === 'Lolos',
+        queuePosition: status === 'Dalam Antrian' ? Math.floor(Math.random() * 5) + 2 : status === 'Diproses' ? 1 : 0
+      });
+    }
+  });
+  return validations;
+};
+
+export const mockValidations = generateDocValidations();
+
+// Keep old data for reference
+const oldMockValidations = [
   // Ahmad Ridwan (5025201001) - 5 riwayat
   {
     id: 1,
@@ -516,10 +594,290 @@ export const getValidationsByUser = (nrp) => {
 
 // Helper function untuk get validasi by id
 export const getValidationById = (id) => {
-  return mockValidations.find(v => v.id === parseInt(id));
+  return mockValidations.find(v => v.id === parseInt(id)) || mockBookValidations.find(v => v.id === parseInt(id));
 };
 
 // Helper function untuk get all validations (admin)
 export const getAllValidations = () => {
-  return mockValidations;
+  return [...mockValidations, ...mockBookValidations];
+};
+
+// Mock book validations
+// Helper function untuk generate data validasi buku
+const generateBookValidations = () => {
+  const statuses = ['Lolos', 'Tidak Lolos', 'Dibatalkan'];
+  const users = mockUsers.map(u => ({ id: u.id, nrp: u.nrp, nama: u.nama, jurusan: u.jurusan, judul: u.email.split('@')[0] }));
+  
+  const generateDate = (daysAgo) => {
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    return date.toISOString().split('T')[0];
+  };
+  
+  const validations = [];
+  let diprosesAdded = false;
+  const usersWithQueue = [1, 2, 3, 4]; // User index yang punya antrian
+  
+  users.forEach((user, userIndex) => {
+    let hasQueueForUser = false;
+    
+    for (let i = 0; i < 20; i++) {
+      let status;
+      
+      if (!diprosesAdded && userIndex === 1 && i === 0) {
+        status = 'Diproses';
+        diprosesAdded = true;
+        hasQueueForUser = true;
+      } else if (!hasQueueForUser && usersWithQueue.includes(userIndex) && i === 1) {
+        status = 'Dalam Antrian';
+        hasQueueForUser = true;
+      } else {
+        status = statuses[i % 3];
+      }
+      
+      validations.push({
+        id: 100 + userIndex * 20 + i + 1,
+        userId: user.id,
+        nrp: user.nrp,
+        nama: user.nama,
+        jurusan: user.jurusan,
+        judulBuku: user.judul,
+        filename: `Buku_${i + 1}_${user.nama.split(' ')[0]}.zip`,
+        numChapters: user.id <= 2 ? 4 : 5,
+        totalFiles: user.id <= 2 ? 6 : 7,
+        date: generateDate(i * 2 + userIndex),
+        size: `${(8 + Math.random() * 3).toFixed(1)} MB`,
+        status: status,
+        statusColor: status === 'Lolos' ? 'success' : status === 'Tidak Lolos' ? 'error' : status === 'Dalam Antrian' ? 'info' : status === 'Diproses' ? 'warning' : 'default',
+        errorCount: status === 'Tidak Lolos' ? Math.floor(Math.random() * 15) + 5 : (status === 'Dalam Antrian' || status === 'Diproses') ? null : 0,
+        skor: status === 'Lolos' ? Math.floor(Math.random() * 20) + 80 : status === 'Tidak Lolos' ? Math.floor(Math.random() * 30) + 40 : null,
+        isPassedValidation: status === 'Lolos',
+        queuePosition: status === 'Dalam Antrian' ? Math.floor(Math.random() * 5) + 2 : status === 'Diproses' ? 1 : undefined,
+        type: 'book'
+      });
+    }
+  });
+  return validations;
+};
+
+export const mockBookValidations = generateBookValidations();
+
+// Keep old data for reference
+const oldMockBookValidations = [
+  // Ahmad Ridwan (5025201001)
+  {
+    id: 101,
+    userId: 1,
+    nrp: '5025201001',
+    nama: 'Ahmad Ridwan',
+    jurusan: 'Teknik Informatika',
+    judulBuku: 'Implementasi Machine Learning untuk Prediksi Cuaca',
+    filename: 'Buku_TA_ML_Cuaca.zip',
+    numChapters: 5,
+    totalFiles: 7,
+    date: '2024-01-18',
+    size: '9.2 MB',
+    status: 'Tidak Lolos',
+    statusColor: 'error',
+    errorCount: 15,
+    skor: 72,
+    isPassedValidation: false,
+    type: 'book'
+  },
+  {
+    id: 102,
+    userId: 1,
+    nrp: '5025201001',
+    nama: 'Ahmad Ridwan',
+    jurusan: 'Teknik Informatika',
+    judulBuku: 'Implementasi Machine Learning untuk Prediksi Cuaca',
+    filename: 'Buku_TA_Draft_1.zip',
+    numChapters: 5,
+    totalFiles: 7,
+    date: '2024-01-10',
+    size: '8.8 MB',
+    status: 'Lolos',
+    statusColor: 'success',
+    errorCount: 0,
+    skor: 95,
+    isPassedValidation: true,
+    type: 'book'
+  },
+  // Siti Nurhaliza (5025201002)
+  {
+    id: 103,
+    userId: 2,
+    nrp: '5025201002',
+    nama: 'Siti Nurhaliza',
+    jurusan: 'Sistem Informasi',
+    judulBuku: 'Sistem Informasi Manajemen Perpustakaan Berbasis Web',
+    filename: 'Buku_Lengkap_Perpustakaan.zip',
+    numChapters: 4,
+    totalFiles: 6,
+    date: '2024-01-15',
+    size: '8.5 MB',
+    status: 'Lolos',
+    statusColor: 'success',
+    errorCount: 0,
+    skor: 98,
+    isPassedValidation: true,
+    type: 'book'
+  },
+  {
+    id: 104,
+    userId: 2,
+    nrp: '5025201002',
+    nama: 'Siti Nurhaliza',
+    jurusan: 'Sistem Informasi',
+    judulBuku: 'Sistem Informasi Manajemen Perpustakaan Berbasis Web',
+    filename: 'Buku_TA_Revisi.zip',
+    numChapters: 4,
+    totalFiles: 6,
+    date: '2024-01-08',
+    size: '8.1 MB',
+    status: 'Dalam Antrian',
+    statusColor: 'info',
+    errorCount: null,
+    skor: null,
+    isPassedValidation: false,
+    queuePosition: 2,
+    type: 'book'
+  },
+  // Budi Santoso (5025201003)
+  {
+    id: 105,
+    userId: 3,
+    nrp: '5025201003',
+    nama: 'Budi Santoso',
+    jurusan: 'Teknik Informatika',
+    judulBuku: 'Analisis Sentimen Media Sosial Menggunakan Deep Learning',
+    filename: 'Buku_TA_Sentimen_Final.zip',
+    numChapters: 5,
+    totalFiles: 7,
+    date: '2024-01-17',
+    size: '10.3 MB',
+    status: 'Lolos',
+    statusColor: 'success',
+    errorCount: 0,
+    skor: 100,
+    isPassedValidation: true,
+    type: 'book'
+  },
+  {
+    id: 106,
+    userId: 3,
+    nrp: '5025201003',
+    nama: 'Budi Santoso',
+    jurusan: 'Teknik Informatika',
+    judulBuku: 'Analisis Sentimen Media Sosial Menggunakan Deep Learning',
+    filename: 'Buku_TA_Draft_2.zip',
+    numChapters: 5,
+    totalFiles: 7,
+    date: '2024-01-12',
+    size: '9.7 MB',
+    status: 'Tidak Lolos',
+    statusColor: 'error',
+    errorCount: 8,
+    skor: 68,
+    isPassedValidation: false,
+    type: 'book'
+  },
+  // Dewi Lestari (5025201004)
+  {
+    id: 107,
+    userId: 4,
+    nrp: '5025201004',
+    nama: 'Dewi Lestari',
+    jurusan: 'Sistem Informasi',
+    judulBuku: 'Aplikasi Mobile untuk Monitoring Kesehatan',
+    filename: 'Buku_TA_Mobile_Health.zip',
+    numChapters: 4,
+    totalFiles: 6,
+    date: '2024-01-16',
+    size: '7.9 MB',
+    status: 'Diproses',
+    statusColor: 'warning',
+    errorCount: null,
+    skor: null,
+    isPassedValidation: false,
+    type: 'book'
+  },
+  {
+    id: 108,
+    userId: 4,
+    nrp: '5025201004',
+    nama: 'Dewi Lestari',
+    jurusan: 'Sistem Informasi',
+    judulBuku: 'Aplikasi Mobile untuk Monitoring Kesehatan',
+    filename: 'Buku_TA_Draft.zip',
+    numChapters: 4,
+    totalFiles: 6,
+    date: '2024-01-09',
+    size: '7.5 MB',
+    status: 'Tidak Lolos',
+    statusColor: 'error',
+    errorCount: 12,
+    skor: 55,
+    isPassedValidation: false,
+    type: 'book'
+  },
+  // Eko Prasetyo (5025201005)
+  {
+    id: 109,
+    userId: 5,
+    nrp: '5025201005',
+    nama: 'Eko Prasetyo',
+    jurusan: 'Teknik Komputer',
+    judulBuku: 'Optimasi Algoritma Routing pada Jaringan IoT',
+    filename: 'Buku_TA_IoT_Routing.zip',
+    numChapters: 5,
+    totalFiles: 7,
+    date: '2024-01-14',
+    size: '9.5 MB',
+    status: 'Lolos',
+    statusColor: 'success',
+    errorCount: 0,
+    skor: 92,
+    isPassedValidation: true,
+    type: 'book'
+  },
+  {
+    id: 110,
+    userId: 5,
+    nrp: '5025201005',
+    nama: 'Eko Prasetyo',
+    jurusan: 'Teknik Komputer',
+    judulBuku: 'Optimasi Algoritma Routing pada Jaringan IoT',
+    filename: 'Buku_TA_Awal.zip',
+    numChapters: 5,
+    totalFiles: 7,
+    date: '2024-01-05',
+    size: '8.9 MB',
+    status: 'Dibatalkan',
+    statusColor: 'default',
+    errorCount: null,
+    skor: null,
+    isPassedValidation: false,
+    type: 'book'
+  }
+];
+
+export const getBookValidationsByUser = (nrp) => {
+  return mockBookValidations.filter(v => v.nrp === nrp);
+};
+
+export const getBookValidationById = (id) => {
+  return mockBookValidations.find(v => v.id === parseInt(id));
+};
+
+export const getStatisticsByUserBook = (nrp) => {
+  const userValidations = mockBookValidations.filter(v => v.nrp === nrp && (v.status === 'Lolos' || v.status === 'Tidak Lolos' || v.status === 'Dalam Antrian' || v.status === 'Diproses'));
+  const passedValidations = userValidations.filter(v => v.status === 'Lolos');
+  const needsFixValidations = userValidations.filter(v => v.status === 'Tidak Lolos');
+  
+  return {
+    total: userValidations.length,
+    passed: passedValidations.length,
+    needsFix: needsFixValidations.length
+  };
 };

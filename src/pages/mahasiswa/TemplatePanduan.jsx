@@ -19,6 +19,7 @@ export default function TemplatePanduan() {
     try {
       setLoading(true);
       const data = await templateService.getActiveTemplate();
+      console.log('Template data:', data);
       if (data) setTemplates([data]);
     } catch (error) {
       console.error('Error fetching template:', error);

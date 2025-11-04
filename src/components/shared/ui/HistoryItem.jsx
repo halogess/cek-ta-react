@@ -4,7 +4,7 @@ import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import { CancelOutlined, DownloadOutlined } from '@mui/icons-material';
 import StatusChip from './StatusChip';
 
-const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload, showCancelButton = true, additionalInfo, isAdminView = false, judulTA, nama, nrp, jurusan, skor }) => (
+const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload, showCancelButton = true, additionalInfo, isAdminView = false, judulTA, nama, nrp, jurusan, skor, judulBuku, totalFiles, type }) => (
   <Paper
     elevation={0}
     onClick={onDetail}
@@ -41,9 +41,13 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
       <Box sx={{ minWidth: 0, flex: 1 }}>
         {isAdminView ? (
           <>
-            <Typography fontWeight="600" noWrap>{judulTA}</Typography>
+            <Typography fontWeight="600" noWrap>{judulTA || judulBuku}</Typography>
             <Stack direction="row" spacing={1} divider={<Typography color="text.secondary">•</Typography>}>
-              <Typography variant="body2" color="text.secondary">{filename}</Typography>
+              {type === 'book' ? (
+                <Typography variant="body2" color="text.secondary">{totalFiles} file</Typography>
+              ) : (
+                <Typography variant="body2" color="text.secondary">{filename}</Typography>
+              )}
               <Typography variant="body2" color="text.secondary">{date}</Typography>
               <Typography variant="body2" color="text.secondary">{nama}</Typography>
               <Typography variant="body2" color="text.secondary">{nrp}</Typography>
@@ -52,10 +56,14 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
           </>
         ) : (
           <>
-            <Typography fontWeight="600" noWrap>{filename}</Typography>
+            <Typography fontWeight="600" noWrap>{type === 'book' ? judulBuku : filename}</Typography>
             <Stack direction="row" spacing={1} divider={<Typography color="text.secondary">•</Typography>}>
               <Typography variant="body2" color="text.secondary">Diupload pada {date}</Typography>
-              <Typography variant="body2" color="text.secondary">{size}</Typography>
+              {type === 'book' ? (
+                <Typography variant="body2" color="text.secondary">{totalFiles} file</Typography>
+              ) : (
+                <Typography variant="body2" color="text.secondary">{size}</Typography>
+              )}
               {additionalInfo && <Typography variant="body2" color="text.secondary">{additionalInfo}</Typography>}
             </Stack>
           </>

@@ -1,0 +1,224 @@
+import { useState, useEffect } from 'react';
+import { Stack, Paper, Typography, Button, Box, List, ListItem, ListItemText, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Alert, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+import { SearchOutlined, DeleteOutline, InfoOutlined, PersonOffOutlined } from '@mui/icons-material';
+import { useHeader } from '../../context/HeaderContext';
+import Loading from '../../components/shared/ui/Loading';
+
+export default function HapusRiwayat() {
+  const { setHeaderInfo } = useHeader();
+  const [loading, setLoading] = useState(false);
+  const [graduatedStudents, setGraduatedStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [jurusan, setJurusan] = useState('Semua');
+  const [angkatan, setAngkatan] = useState('Semua');
+
+  useEffect(() => {
+    setHeaderInfo({ title: 'Hapus Riwayat Validasi' });
+    return () => setHeaderInfo({ title: '' });
+  }, [setHeaderInfo]);
+
+  const handleSearch = async () => {
+    setLoading(true);
+    setTimeout(() => {
+      let data = [
+        { nrp: '5025201001', nama: 'Ahmad Ridwan', jurusan: 'Teknik Informatika', angkatan: '2020', totalBuku: 8 },
+        { nrp: '5025201002', nama: 'Siti Nurhaliza', jurusan: 'Sistem Informasi', angkatan: '2020', totalBuku: 6 },
+        { nrp: '5025201003', nama: 'Budi Santoso', jurusan: 'Teknik Informatika', angkatan: '2021', totalBuku: 10 },
+        { nrp: '5025211004', nama: 'Dewi Lestari', jurusan: 'Teknologi Informasi', angkatan: '2021', totalBuku: 7 },
+        { nrp: '5025211005', nama: 'Eko Prasetyo', jurusan: 'Sistem Informasi', angkatan: '2021', totalBuku: 9 }
+      ];
+      
+      if (jurusan !== 'Semua') {
+        data = data.filter(s => s.jurusan === jurusan);
+      }
+      if (angkatan !== 'Semua') {
+        data = data.filter(s => s.angkatan === angkatan);
+      }
+      
+      setGraduatedStudents(data);
+      setSelectedStudents([]);
+      setLoading(false);
+    }, 1000);
+  };
+
+  const handleToggleStudent = (nrp) => {
+    setSelectedStudents(prev => 
+      prev.includes(nrp) ? prev.filter(n => n !== nrp) : [...prev, nrp]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedStudents.length === graduatedStudents.length) {
+      setSelectedStudents([]);
+    } else {
+      setSelectedStudents(graduatedStudents.map(s => s.nrp));
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedStudents.length === 0) return;
+    setOpenConfirmDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (confirmText !== 'HAPUS RIWAYAT') return;
+    
+    // Simulate delete
+    setGraduatedStudents(prev => prev.filter(s => !selectedStudents.includes(s.nrp)));
+    setSelectedStudents([]);
+    setOpenConfirmDialog(false);
+    setConfirmText('');
+    setShowSuccess(true);
+  };
+
+  if (loading) return <Loading message="Mencari mahasiswa lulus..." />;
+
+  return (
+    <Stack spacing={3}>
+      <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          <DeleteOutline sx={{ color: '#EF4444', fontSize: 28 }} />
+          <Typography variant="h6" fontWeight="600">
+            Hapus Riwayat Validasi Mahasiswa Lulus
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+          <InfoOutlined sx={{ color: '#64748B', fontSize: 20, mt: 0.3 }} />
+          <Typography variant="body2" color="text.secondary">
+            Gunakan fitur ini untuk menghapus riwayat validasi buku dari mahasiswa yang sudah lulus. Pilih jurusan dan angkatan, lalu klik tombol cari untuk menampilkan daftar mahasiswa.
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 2, mt: 2, alignItems: 'center' }}>
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Jurusan</InputLabel>
+            <Select value={jurusan} onChange={(e) => setJurusan(e.target.value)} label="Jurusan">
+              <MenuItem value="Semua">Semua</MenuItem>
+              <MenuItem value="Teknik Informatika">Teknik Informatika</MenuItem>
+              <MenuItem value="Sistem Informasi">Sistem Informasi</MenuItem>
+              <MenuItem value="Teknologi Informasi">Teknologi Informasi</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 150 }}>
+            <InputLabel>Angkatan</InputLabel>
+            <Select value={angkatan} onChange={(e) => setAngkatan(e.target.value)} label="Angkatan">
+              <MenuItem value="Semua">Semua</MenuItem>
+              <MenuItem value="2020">2020</MenuItem>
+              <MenuItem value="2021">2021</MenuItem>
+              <MenuItem value="2022">2022</MenuItem>
+            </Select>
+          </FormControl>
+          <Button 
+            variant="contained" 
+            startIcon={<SearchOutlined />}
+            onClick={handleSearch}
+          >
+            Cari Mahasiswa Lulus
+          </Button>
+        </Box>
+      </Paper>
+
+      {graduatedStudents.length > 0 ? (
+        <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" fontWeight="600">
+              Mahasiswa Lulus ({graduatedStudents.length})
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button 
+                variant="outlined"
+                onClick={handleSelectAll}
+              >
+                {selectedStudents.length === graduatedStudents.length ? 'Batal Pilih Semua' : 'Pilih Semua'}
+              </Button>
+              <Button 
+                variant="contained" 
+                color="error"
+                startIcon={<DeleteOutline />}
+                onClick={handleDelete}
+                disabled={selectedStudents.length === 0}
+              >
+                Hapus Terpilih ({selectedStudents.length})
+              </Button>
+            </Box>
+          </Box>
+
+          <List>
+            {graduatedStudents.map((student) => (
+              <ListItem 
+                key={student.nrp}
+                sx={{ 
+                  border: '1px solid #E2E8F0', 
+                  borderRadius: '8px', 
+                  mb: 1,
+                  bgcolor: selectedStudents.includes(student.nrp) ? '#FEF2F2' : 'white'
+                }}
+              >
+                <Checkbox 
+                  checked={selectedStudents.includes(student.nrp)}
+                  onChange={() => handleToggleStudent(student.nrp)}
+                />
+                <ListItemText
+                  primary={`${student.nama} (${student.nrp})`}
+                  secondary={`${student.jurusan} • Angkatan ${student.angkatan} • ${student.totalBuku} validasi buku`}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Paper>
+      ) : !loading && (
+        <Paper elevation={0} sx={{ p: 4, borderRadius: '12px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
+          <PersonOffOutlined sx={{ fontSize: 64, color: '#CBD5E1', mb: 2 }} />
+          <Typography variant="body1" color="text.secondary">
+            Belum ada data mahasiswa. Gunakan filter dan klik tombol cari untuk menampilkan daftar mahasiswa lulus.
+          </Typography>
+        </Paper>
+      )}
+
+      <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Konfirmasi Hapus Riwayat</DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Anda akan menghapus riwayat validasi buku dari {selectedStudents.length} mahasiswa. Tindakan ini tidak dapat dibatalkan!
+          </Alert>
+          <Typography variant="body2" gutterBottom>
+            Ketik <strong>HAPUS RIWAYAT</strong> untuk mengkonfirmasi:
+          </Typography>
+          <TextField
+            fullWidth
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder="HAPUS RIWAYAT"
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setOpenConfirmDialog(false); setConfirmText(''); }}>
+            Batal
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete} 
+            color="error" 
+            variant="contained"
+            disabled={confirmText !== 'HAPUS RIWAYAT'}
+          >
+            Hapus
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={showSuccess} onClose={() => setShowSuccess(false)}>
+        <DialogContent>
+          <Alert severity="success">
+            Berhasil menghapus riwayat validasi buku mahasiswa lulus!
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowSuccess(false)}>Tutup</Button>
+        </DialogActions>
+      </Dialog>
+    </Stack>
+  );
+}

@@ -7,8 +7,8 @@ export default function UploadInfoCard() {
       <Stack spacing={2}>
         <Typography variant="h6" fontWeight="bold">Informasi Penting</Typography>
         <InfoListItem number="1" text="Ukuran file maksimal: 20 MB" />
-        <InfoListItem number="2" text="Proses validasi memakan waktu sekitar 30 menit" />
-        <InfoListItem number="3" text="Anda akan menerima email setelah validasi selesai" />
+        <InfoListItem number="2" text="Proses cek dokumen memakan waktu sekitar 30 menit" />
+        <InfoListItem number="3" text="Anda akan menerima notifikasi setelah pengecekan selesai" />
       </Stack>
     </Paper>
   );

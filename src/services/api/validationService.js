@@ -23,10 +23,11 @@ export const validationService = {
   /**
    * Get validasi by user ID (untuk mahasiswa)
    * @param {string} userId - NRP mahasiswa
+   * @param {object} params - { status, search, sort }
    * @returns {Promise} Array of validation objects
    */
-  getValidationsByUser: async (userId) => {
-    return apiClient.get(`/validations/user/${userId}`);
+  getValidationsByUser: async (userId, params = {}) => {
+    return apiClient.get(`/validations/user/${userId}`, { params });
   },
 
   /**
@@ -49,6 +50,40 @@ export const validationService = {
     formData.append('file', file);
     formData.append('metadata', JSON.stringify(metadata));
     return apiClient.upload('/validations/upload', formData);
+  },
+
+  /**
+   * Upload buku (multiple files) untuk validasi
+   * @param {File[]} files - Array of files
+   * @param {object} metadata - { judulBuku, nrp, numChapters }
+   * @returns {Promise} { id, status, message }
+   */
+  uploadBook: async (files, metadata) => {
+    const formData = new FormData();
+    files.forEach((file, index) => {
+      formData.append(`files`, file);
+    });
+    formData.append('metadata', JSON.stringify(metadata));
+    return apiClient.upload('/validations/upload-book', formData);
+  },
+
+  /**
+   * Get book validations by user
+   * @param {string} userId - NRP mahasiswa
+   * @param {object} params - { status, search, sort }
+   * @returns {Promise} Array of book validation objects
+   */
+  getBookValidationsByUser: async (userId, params = {}) => {
+    return apiClient.get(`/validations/books/user/${userId}`, { params });
+  },
+
+  /**
+   * Get all book validations (untuk admin)
+   * @param {object} params - { status, prodi, startDate, endDate, search, sort }
+   * @returns {Promise} Array of book validation objects
+   */
+  getAllBookValidations: async (params = {}) => {
+    return apiClient.get('/validations/books', { params });
   },
 
   /**

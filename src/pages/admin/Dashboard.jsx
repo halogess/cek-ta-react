@@ -21,10 +21,8 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [statsData, errorStatsData] = await Promise.all([
-        dashboardService.getAdminStats(),
-        dashboardService.getErrorStatistics()
-      ]);
+      const statsData = await dashboardService.getAdminStats();
+      const errorStatsData = await dashboardService.getErrorStatistics();
       setStats(statsData);
       setErrorStats(errorStatsData);
     } catch (error) {
@@ -39,7 +37,7 @@ export default function AdminDashboard() {
   return (
     <Stack spacing={3}>
       <StatsCards stats={stats} />
-      <ErrorStatistics errorStats={errorStats} />
+      <ErrorStatistics errorStats={errorStats} usersByProdi={stats?.usersByProdi} />
     </Stack>
   )
 }

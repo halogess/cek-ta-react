@@ -8,6 +8,7 @@ export default function HistoryList({ data, onDetail, onDownload, onCancel, isAd
         <HistoryItem
           key={item.id}
           judulTA={item.judulTA}
+          judulBuku={item.judulBuku}
           filename={item.filename}
           date={item.date}
           size={item.size}
@@ -19,9 +20,11 @@ export default function HistoryList({ data, onDetail, onDownload, onCancel, isAd
           errorCount={item.errorCount}
           skor={item.skor}
           isPassedValidation={item.isPassedValidation}
+          type={item.type}
+          totalFiles={item.totalFiles}
           onDetail={() => onDetail(item.id)}
           onDownload={onDownload}
-          onCancel={onCancel ? () => onCancel(item.filename) : undefined}
+          onCancel={onCancel ? () => onCancel(item.filename || item.judulBuku) : undefined}
           showCancelButton={!isAdminView}
           isAdminView={isAdminView}
         />

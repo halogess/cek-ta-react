@@ -6,8 +6,8 @@
  * Digunakan saat VITE_USE_MOCK=true
  */
 
-import { mockUsers, getAllValidations, getValidationsByUser, getValidationById } from '../../data/mockData';
-import { documentStructure, errors } from '../../data/validationData';
+import { mockUsers, getAllValidations, getValidationsByUser, getValidationById, getBookValidationsByUser, getBookValidationById, mockBookValidations } from '../../data/mockData';
+import { documentStructure, bookDocumentStructure, errors, bookErrors } from '../../data/validationData';
 
 // Simulasi network delay
 const delay = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms));
@@ -20,9 +20,120 @@ const mockApiClient = {
   get: async (endpoint, options = {}) => {
     await delay(); // Simulasi network latency
     
+    if (endpoint === '/validations/books') {
+      let data = mockBookValidations.filter(v => v.status !== 'Dibatalkan');
+      
+      if (options.params) {
+        const { status, prodi, startDate, endDate, search, sort } = options.params;
+        
+        if (status && status !== 'Semua') {
+          if (status === 'Menunggu') {
+            data = data.filter(v => v.status === 'Dalam Antrian' || v.status === 'Diproses');
+          } else {
+            data = data.filter(v => v.status === status);
+          }
+        }
+        
+        if (prodi && prodi !== 'Semua') {
+          data = data.filter(v => v.jurusan === prodi);
+        }
+        
+        if (startDate) {
+          data = data.filter(v => new Date(v.date) >= new Date(startDate));
+        }
+        
+        if (endDate) {
+          data = data.filter(v => new Date(v.date) <= new Date(endDate));
+        }
+        
+        if (search) {
+          data = data.filter(v => 
+            v.nama?.toLowerCase().includes(search.toLowerCase()) ||
+            v.nrp?.toLowerCase().includes(search.toLowerCase()) ||
+            v.judulBuku?.toLowerCase().includes(search.toLowerCase())
+          );
+        }
+        
+        if (sort === 'terbaru') {
+          data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        } else if (sort === 'terlama') {
+          data.sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+      }
+      
+      return data;
+    }
+    
+    if (endpoint.startsWith('/validations/books/user/')) {
+      const userId = endpoint.split('/').pop();
+      let data = getBookValidationsByUser(userId);
+      
+      if (options.params) {
+        const { status, search, sort } = options.params;
+        
+        if (status && status !== 'Semua') {
+          if (status === 'Menunggu') {
+            data = data.filter(v => v.status === 'Dalam Antrian' || v.status === 'Diproses');
+          } else {
+            data = data.filter(v => v.status === status);
+          }
+        }
+        
+        if (search) {
+          data = data.filter(v => 
+            v.judulBuku?.toLowerCase().includes(search.toLowerCase()) ||
+            v.filename?.toLowerCase().includes(search.toLowerCase())
+          );
+        }
+        
+        if (sort === 'terbaru') {
+          data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        } else if (sort === 'terlama') {
+          data.sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+      }
+      
+      // Sort: Diproses first, then Dalam Antrian, then others
+      data.sort((a, b) => {
+        if (a.status === 'Diproses' && b.status !== 'Diproses') return -1;
+        if (a.status !== 'Diproses' && b.status === 'Diproses') return 1;
+        if (a.status === 'Dalam Antrian' && b.status !== 'Dalam Antrian' && b.status !== 'Diproses') return -1;
+        if (a.status !== 'Dalam Antrian' && b.status === 'Dalam Antrian' && a.status !== 'Diproses') return 1;
+        return 0;
+      });
+      
+      return data;
+    }
+    
     if (endpoint.startsWith('/validations/user/')) {
       const userId = endpoint.split('/').pop();
-      return getValidationsByUser(userId);
+      let data = getValidationsByUser(userId);
+      
+      if (options.params) {
+        const { status, search, sort } = options.params;
+        
+        if (status && status !== 'Semua') {
+          if (status === 'Menunggu') {
+            data = data.filter(v => v.status === 'Dalam Antrian' || v.status === 'Diproses');
+          } else {
+            data = data.filter(v => v.status === status);
+          }
+        }
+        
+        if (search) {
+          data = data.filter(v => 
+            v.filename?.toLowerCase().includes(search.toLowerCase())
+          );
+        }
+        
+        if (sort === 'terbaru') {
+          data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        } else if (sort === 'terlama') {
+          data.sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+      }
+      
+      return data;
     }
     
     if (endpoint.startsWith('/validations/') && endpoint.includes('/certificate')) {
@@ -33,16 +144,27 @@ const mockApiClient = {
     }
     
     if (endpoint.startsWith('/validations/') && endpoint.includes('/errors')) {
-      return errors;
+      const id = parseInt(endpoint.split('/')[2]);
+      const validation = getBookValidationById(id) || getValidationById(id);
+      const errorList = validation?.type === 'book' ? bookErrors : errors;
+      const errorCount = validation?.errorCount || 0;
+      return errorList.slice(0, errorCount);
     }
     
     if (endpoint.startsWith('/validations/') && endpoint.includes('/structure')) {
-      return documentStructure;
+      const id = parseInt(endpoint.split('/')[2]);
+      const validation = getBookValidationById(id) || getValidationById(id);
+      return validation?.type === 'book' ? bookDocumentStructure : documentStructure;
+    }
+    
+    if (endpoint.startsWith('/validations/books/')) {
+      const id = endpoint.split('/')[3];
+      return getBookValidationById(parseInt(id));
     }
     
     if (endpoint.startsWith('/validations/')) {
       const id = endpoint.split('/')[2];
-      return getValidationById(parseInt(id));
+      return getBookValidationById(parseInt(id)) || getValidationById(parseInt(id));
     }
     
     if (endpoint.startsWith('/validations')) {
@@ -99,35 +221,243 @@ const mockApiClient = {
     }
     
     if (endpoint === '/templates/active') {
-      const mockTemplate = {
-        id: 1,
-        name: 'Panduan_TA_2024.docx',
-        version: 'v2.1.0',
-        date: '15 Jan 2024',
-        rules: 70,
-        isActive: true,
-        fileUrl: '/templates/[TEMPLATE] BUKU TA - TESIS.docx',
-        formatRules: {
-          page_settings: [
-            { id: 'a4_portrait', description: 'A4 Portrait (Dokumen Utama)', rules: [
-              { value: 'Paper Size: A4', enabled: true },
-              { value: 'Orientation: Portrait', enabled: true },
-              { value: 'Margin Top: 4cm', enabled: true },
-              { value: 'Margin Left: 4cm', enabled: true },
-              { value: 'Margin Bottom: 3cm', enabled: true },
-              { value: 'Margin Right: 3cm', enabled: true }
-            ]}
-          ],
-          components: [
-            { id: 'judul_bab', name: 'Judul Bab', rules: [
-              { value: 'Font: Times New Roman, 16pt, Bold', enabled: true },
-              { value: 'Case: Uppercase', enabled: true },
-              { value: 'Alignment: Center', enabled: true }
-            ]}
-          ]
+      const allTemplates = [
+        {
+          id: 1,
+          name: 'Panduan_TA_2024.docx',
+          version: '2025.1',
+          rules: 70,
+          date: '2024-01-15',
+          isActive: true,
+          fileUrl: '/templates/[TEMPLATE] BUKU TA - TESIS.docx',
+          formatRules: {
+            page_settings: [
+              { id: 'a4_portrait', description: 'A4 Portrait (Dokumen Utama)', rules: [
+                { value: 'Paper Size: A4', enabled: true },
+                { value: 'Orientation: Portrait', enabled: true },
+                { value: 'Margin Top: 4cm', enabled: true },
+                { value: 'Margin Left: 4cm', enabled: true },
+                { value: 'Margin Bottom: 3cm', enabled: true },
+                { value: 'Margin Right: 3cm', enabled: true }
+              ]},
+              { id: 'a4_landscape', description: 'A4 Landscape (Lampiran)', rules: [
+                { value: 'Paper Size: A4', enabled: true },
+                { value: 'Orientation: Landscape', enabled: true },
+                { value: 'Margin Top: 4cm', enabled: true },
+                { value: 'Margin Left: 3cm', enabled: true },
+                { value: 'Margin Bottom: 3cm', enabled: true },
+                { value: 'Margin Right: 4cm', enabled: true }
+              ]},
+              { id: 'a3_landscape', description: 'A3 Landscape (Lampiran Khusus)', rules: [
+                { value: 'Paper Size: A3', enabled: true },
+                { value: 'Orientation: Landscape', enabled: true },
+                { value: 'Margin Top: 4cm', enabled: true },
+                { value: 'Margin Left: 4cm', enabled: true },
+                { value: 'Margin Bottom: 3cm', enabled: true },
+                { value: 'Margin Right: 3cm', enabled: true }
+              ]}
+            ],
+            components: [
+              { id: 'judul_bab', name: 'Judul Bab', rules: [
+                { value: 'Font: Times New Roman, 16pt, Bold', enabled: true },
+                { value: 'Case: Uppercase', enabled: true },
+                { value: 'Alignment: Center', enabled: true },
+                { value: 'Line Spacing: 1.5', enabled: true },
+                { value: 'Numbering: BAB [ROMAN]', enabled: true }
+              ]},
+              { id: 'sub_judul', name: 'Sub Judul', rules: [
+                { value: 'Font: Times New Roman, 14pt, Bold', enabled: true },
+                { value: 'Case: Capitalize Each Word', enabled: true },
+                { value: 'Alignment: Left', enabled: true },
+                { value: 'Line Spacing: 1.5', enabled: true },
+                { value: 'Indent Hanging: 1.27cm', enabled: true }
+              ]},
+              { id: 'paragraf', name: 'Paragraf', rules: [
+                { value: 'Font: Times New Roman, 12pt', enabled: true },
+                { value: 'Alignment: Justify', enabled: true },
+                { value: 'Line Spacing: 1.5', enabled: true },
+                { value: 'First Line Indent: 1.27cm', enabled: true }
+              ]},
+              { id: 'kutipan', name: 'Kutipan', rules: [
+                { value: 'Font: Times New Roman, 12pt', enabled: true },
+                { value: 'Alignment: Justify', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Indent Left/Right: 1.27cm', enabled: true }
+              ]},
+              { id: 'gambar', name: 'Gambar', rules: [
+                { value: 'Layout: In Line With Text', enabled: true },
+                { value: 'Alignment: Center', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Not Full Page', enabled: true }
+              ]},
+              { id: 'caption_gambar', name: 'Caption Gambar', rules: [
+                { value: 'Font: Times New Roman, 12pt, Bold', enabled: true },
+                { value: 'Alignment: Center', enabled: true },
+                { value: 'Position: Below Image', enabled: true },
+                { value: 'Numbering: Gambar [BAB].[NOMOR]', enabled: true }
+              ]},
+              { id: 'tabel', name: 'Tabel', rules: [
+                { value: 'Alignment: Center', enabled: true },
+                { value: 'Not Full Page', enabled: true },
+                { value: 'Has Repeating Header', enabled: true }
+              ]},
+              { id: 'caption_tabel', name: 'Caption Tabel', rules: [
+                { value: 'Font: Times New Roman, 12pt, Bold', enabled: true },
+                { value: 'Alignment: Center', enabled: true },
+                { value: 'Position: Above Table', enabled: true },
+                { value: 'Numbering: Tabel [BAB].[NOMOR]', enabled: true }
+              ]},
+              { id: 'blok_kode', name: 'Blok Kode', rules: [
+                { value: 'Font: Courier New, 10pt', enabled: true },
+                { value: 'Alignment: Left', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Indent Left: 1cm', enabled: true }
+              ]},
+              { id: 'rumus', name: 'Rumus', rules: [
+                { value: 'Font: Cambria Math, 12pt', enabled: true },
+                { value: 'Alignment: Justify', enabled: true },
+                { value: 'Line Spacing: 1.5', enabled: true },
+                { value: 'Numbering: ([BAB].[NOMOR])', enabled: true }
+              ]},
+              { id: 'footnote', name: 'Footnote', rules: [
+                { value: 'Font: Times New Roman, 10pt', enabled: true },
+                { value: 'Alignment: Left', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Continuous Numbering', enabled: true }
+              ]},
+              { id: 'daftar_pustaka', name: 'Daftar Pustaka', rules: [
+                { value: 'Font: Times New Roman, 12pt', enabled: true },
+                { value: 'Alignment: Justify', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Alphabetized', enabled: true }
+              ]},
+              { id: 'nomor_halaman', name: 'Nomor Halaman', rules: [
+                { value: 'Font: Times New Roman, 12pt', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Page Number Field', enabled: true }
+              ]}
+            ]
+          }
+        },
+        {
+          id: 2,
+          name: 'Panduan_TA_2023.docx',
+          version: '2024.1',
+          rules: 70,
+          date: '2023-09-01',
+          isActive: false,
+          fileUrl: '/templates/[TEMPLATE] BUKU TA - TESIS.docx',
+          formatRules: {
+            page_settings: [
+              { id: 'a4_portrait', description: 'A4 Portrait (Dokumen Utama)', rules: [
+                { value: 'Paper Size: A4', enabled: true },
+                { value: 'Orientation: Portrait', enabled: true },
+                { value: 'Margin Top: 3cm', enabled: true },
+                { value: 'Margin Left: 3cm', enabled: true },
+                { value: 'Margin Bottom: 2.5cm', enabled: true },
+                { value: 'Margin Right: 2.5cm', enabled: true }
+              ]},
+              { id: 'a4_landscape', description: 'A4 Landscape (Lampiran)', rules: [
+                { value: 'Paper Size: A4', enabled: true },
+                { value: 'Orientation: Landscape', enabled: true },
+                { value: 'Margin Top: 3cm', enabled: true },
+                { value: 'Margin Left: 2.5cm', enabled: true },
+                { value: 'Margin Bottom: 2.5cm', enabled: true },
+                { value: 'Margin Right: 3cm', enabled: true }
+              ]},
+              { id: 'a3_landscape', description: 'A3 Landscape (Lampiran Khusus)', rules: [
+                { value: 'Paper Size: A3', enabled: true },
+                { value: 'Orientation: Landscape', enabled: true },
+                { value: 'Margin Top: 3cm', enabled: true },
+                { value: 'Margin Left: 3cm', enabled: true },
+                { value: 'Margin Bottom: 2.5cm', enabled: true },
+                { value: 'Margin Right: 2.5cm', enabled: true }
+              ]}
+            ],
+            components: [
+              { id: 'judul_bab', name: 'Judul Bab', rules: [
+                { value: 'Font: Times New Roman, 14pt, Bold', enabled: true },
+                { value: 'Case: Uppercase', enabled: true },
+                { value: 'Alignment: Center', enabled: true },
+                { value: 'Line Spacing: 1.5', enabled: true },
+                { value: 'Numbering: BAB [ROMAN]', enabled: true }
+              ]},
+              { id: 'sub_judul', name: 'Sub Judul', rules: [
+                { value: 'Font: Times New Roman, 12pt, Bold', enabled: true },
+                { value: 'Case: Capitalize Each Word', enabled: true },
+                { value: 'Alignment: Left', enabled: true },
+                { value: 'Line Spacing: 1.5', enabled: true },
+                { value: 'Indent Hanging: 1.27cm', enabled: true }
+              ]},
+              { id: 'paragraf', name: 'Paragraf', rules: [
+                { value: 'Font: Times New Roman, 12pt', enabled: true },
+                { value: 'Alignment: Justify', enabled: true },
+                { value: 'Line Spacing: 1.15', enabled: true },
+                { value: 'First Line Indent: 1.27cm', enabled: true }
+              ]},
+              { id: 'kutipan', name: 'Kutipan', rules: [
+                { value: 'Font: Times New Roman, 12pt', enabled: true },
+                { value: 'Alignment: Justify', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Indent Left/Right: 1.27cm', enabled: true }
+              ]},
+              { id: 'gambar', name: 'Gambar', rules: [
+                { value: 'Layout: In Line With Text', enabled: true },
+                { value: 'Alignment: Center', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Not Full Page', enabled: true }
+              ]},
+              { id: 'caption_gambar', name: 'Caption Gambar', rules: [
+                { value: 'Font: Times New Roman, 12pt, Bold', enabled: true },
+                { value: 'Alignment: Center', enabled: true },
+                { value: 'Position: Below Image', enabled: true },
+                { value: 'Numbering: Gambar [BAB].[NOMOR]', enabled: true }
+              ]},
+              { id: 'tabel', name: 'Tabel', rules: [
+                { value: 'Alignment: Center', enabled: true },
+                { value: 'Not Full Page', enabled: true },
+                { value: 'Has Repeating Header', enabled: true }
+              ]},
+              { id: 'caption_tabel', name: 'Caption Tabel', rules: [
+                { value: 'Font: Times New Roman, 12pt, Bold', enabled: true },
+                { value: 'Alignment: Center', enabled: true },
+                { value: 'Position: Above Table', enabled: true },
+                { value: 'Numbering: Tabel [BAB].[NOMOR]', enabled: true }
+              ]},
+              { id: 'blok_kode', name: 'Blok Kode', rules: [
+                { value: 'Font: Courier New, 10pt', enabled: true },
+                { value: 'Alignment: Left', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Indent Left: 1cm', enabled: true }
+              ]},
+              { id: 'rumus', name: 'Rumus', rules: [
+                { value: 'Font: Cambria Math, 12pt', enabled: true },
+                { value: 'Alignment: Justify', enabled: true },
+                { value: 'Line Spacing: 1.5', enabled: true },
+                { value: 'Numbering: ([BAB].[NOMOR])', enabled: true }
+              ]},
+              { id: 'footnote', name: 'Footnote', rules: [
+                { value: 'Font: Times New Roman, 10pt', enabled: true },
+                { value: 'Alignment: Left', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Continuous Numbering', enabled: true }
+              ]},
+              { id: 'daftar_pustaka', name: 'Daftar Pustaka', rules: [
+                { value: 'Font: Times New Roman, 12pt', enabled: true },
+                { value: 'Alignment: Justify', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Alphabetized', enabled: true }
+              ]},
+              { id: 'nomor_halaman', name: 'Nomor Halaman', rules: [
+                { value: 'Font: Times New Roman, 12pt', enabled: true },
+                { value: 'Line Spacing: 1.0', enabled: true },
+                { value: 'Page Number Field', enabled: true }
+              ]}
+            ]
+          }
         }
-      };
-      return mockTemplate;
+      ];
+      return allTemplates.find(t => t.isActive);
     }
     
     if (endpoint === '/templates') {
@@ -378,16 +708,53 @@ const mockApiClient = {
     
     if (endpoint === '/dashboard/admin/stats') {
       const all = getAllValidations();
+      const usersByProdi = mockUsers.reduce((acc, user) => {
+        acc[user.jurusan] = (acc[user.jurusan] || 0) + 1;
+        return acc;
+      }, {});
       return {
         total: all.length,
         waiting: all.filter(v => v.status === 'Dalam Antrian' || v.status === 'Diproses').length,
         passed: all.filter(v => v.status === 'Lolos').length,
-        needsFix: all.filter(v => v.status === 'Tidak Lolos').length
+        needsFix: all.filter(v => v.status === 'Tidak Lolos').length,
+        usersByProdi
       };
     }
     
     if (endpoint.startsWith('/dashboard/mahasiswa/')) {
-      const userId = endpoint.split('/')[3];
+      const pathParts = endpoint.split('/');
+      const userId = pathParts[3];
+      
+      // If endpoint is /dashboard/mahasiswa/{userId} (without /stats)
+      if (pathParts.length === 4 || (pathParts.length === 5 && pathParts[4] === '')) {
+        const dokumenData = getValidationsByUser(userId).sort((a, b) => new Date(b.date) - new Date(a.date));
+        const bukuData = getBookValidationsByUser(userId).sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        return {
+          dokumen: {
+            stats: {
+              total: dokumenData.length,
+              waiting: dokumenData.filter(v => v.status === 'Dalam Antrian' || v.status === 'Diproses').length,
+              passed: dokumenData.filter(v => v.status === 'Lolos').length,
+              needsFix: dokumenData.filter(v => v.status === 'Tidak Lolos').length,
+              cancelled: dokumenData.filter(v => v.status === 'Dibatalkan').length
+            },
+            history: dokumenData.slice(0, 3)
+          },
+          buku: {
+            stats: {
+              total: bukuData.length,
+              waiting: bukuData.filter(v => v.status === 'Dalam Antrian' || v.status === 'Diproses').length,
+              passed: bukuData.filter(v => v.status === 'Lolos').length,
+              needsFix: bukuData.filter(v => v.status === 'Tidak Lolos').length,
+              cancelled: bukuData.filter(v => v.status === 'Dibatalkan').length
+            },
+            history: bukuData.slice(0, 3)
+          }
+        };
+      }
+      
+      // If endpoint is /dashboard/mahasiswa/{userId}/stats
       const userValidations = getValidationsByUser(userId);
       return {
         total: userValidations.length,
@@ -495,6 +862,15 @@ const mockApiClient = {
         id: Date.now(),
         status: 'Dalam Antrian',
         message: 'Document uploaded successfully',
+      };
+    }
+    
+    if (endpoint === '/validations/upload-book') {
+      return {
+        id: Date.now(),
+        status: 'Dalam Antrian',
+        message: 'Book uploaded successfully',
+        type: 'book'
       };
     }
     

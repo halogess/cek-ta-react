@@ -3,8 +3,23 @@
  * Berisi struktur dokumen dan daftar error untuk testing
  */
 
-// Struktur dokumen dengan statistik per BAB dan section
+// Struktur dokumen untuk single file (1 BAB saja)
 export const documentStructure = [
+  {
+    chapter: 'BAB I PENDAHULUAN',
+    pengantarStats: { Paragraf: 2 },
+    sections: [
+      { title: '1.1 Latar Belakang', stats: { Paragraf: 45, Footnote: 2, Judul: 3, 'List-item': 2, Tabel: 1, Gambar: 1, Caption: 1, Formula: 1 } },
+      { title: '1.2 Rumusan Masalah', stats: { Paragraf: 12, 'List-item': 5, Judul: 2, Footnote: 1, Tabel: 1 } },
+      { title: '1.3 Tujuan Penelitian', stats: { Paragraf: 8, 'List-item': 3, Judul: 1, Gambar: 1, Caption: 1 } },
+      { title: '1.4 Manfaat Penelitian', stats: { Paragraf: 10, Judul: 2, 'List-item': 2, Footnote: 1 } },
+    ],
+    penutupStats: { Paragraf: 1 }
+  }
+];
+
+// Struktur dokumen untuk book validation (multiple BAB)
+export const bookDocumentStructure = [
   {
     chapter: 'BAB I PENDAHULUAN',
     pengantarStats: { Paragraf: 2 },
@@ -55,6 +70,7 @@ export const documentStructure = [
   },
 ];
 
+// Errors untuk single file validation
 export const errors = [
   {
     category: 'Font',
@@ -151,5 +167,57 @@ export const errors = [
       'Pastikan urutan alfabetis'
     ],
     tips: 'Gunakan reference manager seperti Mendeley atau Zotero untuk konsistensi.'
+  }
+];
+
+// Errors untuk book validation (dengan fileIndex)
+export const bookErrors = [
+  {
+    fileIndex: 1,
+    category: 'Font',
+    severity: 'Tinggi',
+    title: 'Font tidak sesuai pada BAB 1',
+    location: 'Halaman 3, Paragraf 2',
+    steps: ['Pilih teks', 'Ubah font ke Times New Roman 12pt']
+  },
+  {
+    fileIndex: 1,
+    category: 'Spasi',
+    severity: 'Sedang',
+    title: 'Spasi antar baris tidak konsisten',
+    location: 'Halaman 5, Paragraf 3-5',
+    steps: ['Pilih paragraf', 'Ubah line spacing ke 1.5']
+  },
+  {
+    fileIndex: 2,
+    category: 'Margin',
+    severity: 'Tinggi',
+    title: 'Margin kiri tidak sesuai',
+    location: 'Seluruh BAB 2',
+    steps: ['Buka Layout > Margins', 'Ubah margin kiri ke 4cm']
+  },
+  {
+    fileIndex: 2,
+    category: 'Tabel',
+    severity: 'Sedang',
+    title: 'Caption tabel tidak sesuai format',
+    location: 'Tabel 2.1, Halaman 12',
+    steps: ['Klik kanan tabel', 'Insert Caption dengan format yang benar']
+  },
+  {
+    fileIndex: 3,
+    category: 'Gambar',
+    severity: 'Sedang',
+    title: 'Resolusi gambar terlalu rendah',
+    location: 'Gambar 3.2, Halaman 25',
+    steps: ['Ganti dengan gambar resolusi minimal 300 DPI']
+  },
+  {
+    fileIndex: 4,
+    category: 'Penomoran',
+    severity: 'Tinggi',
+    title: 'Penomoran halaman tidak konsisten',
+    location: 'Halaman 30-35',
+    steps: ['Periksa section breaks', 'Perbaiki penomoran']
   }
 ];

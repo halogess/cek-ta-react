@@ -13,7 +13,7 @@ export default function StatsCards({ stats = { total: 0, waiting: 0, passed: 0, 
         value={stats.total.toString()} 
         subtitle="Dokumen yang divalidasi"
         icon={<FileCopyOutlined />} 
-        iconColor="#64748B"
+        iconColor="#9333EA"
         onClick={() => navigate('/admin/history')}
       />
       <StatCard 

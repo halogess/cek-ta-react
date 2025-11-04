@@ -14,14 +14,15 @@ const History = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const statusFromUrl = searchParams.get('status') || 'Semua';
+  const prodiFromUrl = searchParams.get('prodi') || 'Semua';
   const [filterStatus, setFilterStatus] = useState(statusFromUrl);
-  const [filterProdi, setFilterProdi] = useState('Semua');
+  const [filterProdi, setFilterProdi] = useState(prodiFromUrl);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [sortBy, setSortBy] = useState('terbaru');
   const [searchQuery, setSearchQuery] = useState('');
   const [tempFilterStatus, setTempFilterStatus] = useState(statusFromUrl);
-  const [tempFilterProdi, setTempFilterProdi] = useState('Semua');
+  const [tempFilterProdi, setTempFilterProdi] = useState(prodiFromUrl);
   const [tempStartDate, setTempStartDate] = useState('');
   const [tempEndDate, setTempEndDate] = useState('');
   const [tempSortBy, setTempSortBy] = useState('terbaru');
@@ -33,16 +34,27 @@ const History = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setHeaderInfo({ title: 'Riwayat Validasi' });
-    fetchValidations();
+    setHeaderInfo({ title: 'Riwayat Validasi Buku Lengkap' });
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
+
+  useEffect(() => {
+    fetchValidations();
+  }, [filterStatus, filterProdi, startDate, endDate, sortBy, searchQuery]);
 
   const fetchValidations = async () => {
     try {
       setLoading(true);
-      const data = await validationService.getAllValidations();
-      setAllData(data.filter(item => item.status === 'Lolos' || item.status === 'Tidak Lolos' || item.status === 'Dalam Antrian' || item.status === 'Diproses'));
+      const params = {
+        status: filterStatus === 'Semua' ? undefined : filterStatus,
+        prodi: filterProdi === 'Semua' ? undefined : filterProdi,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+        search: searchQuery || undefined,
+        sort: sortBy
+      };
+      const data = await validationService.getAllBookValidations(params);
+      setAllData(data);
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -55,6 +67,11 @@ const History = () => {
     setTempFilterStatus(statusFromUrl);
   }, [statusFromUrl]);
 
+  useEffect(() => {
+    setFilterProdi(prodiFromUrl);
+    setTempFilterProdi(prodiFromUrl);
+  }, [prodiFromUrl]);
+
   const handleApplyFilter = () => {
     setFilterStatus(tempFilterStatus);
     setFilterProdi(tempFilterProdi);
@@ -63,6 +80,7 @@ const History = () => {
     setSortBy(tempSortBy);
     setSearchQuery(tempSearchQuery);
     setPage(1);
+    fetchValidations();
   };
 
   const handleReset = () => {
@@ -79,70 +97,17 @@ const History = () => {
     setTempSortBy('terbaru');
     setTempSearchQuery('');
     setPage(1);
+    fetchValidations();
   };
 
   const handleDownloadCertificate = () => {
     setShowSuccess(true);
   };
 
-  let filteredData = allData;
-
-  if (filterStatus !== 'Semua') {
-    if (filterStatus === 'Menunggu') {
-      filteredData = filteredData.filter(item => item.status === 'Dalam Antrian' || item.status === 'Diproses');
-    } else {
-      filteredData = filteredData.filter(item => item.status === filterStatus);
-    }
-  }
-
-  if (filterProdi !== 'Semua') {
-    filteredData = filteredData.filter(item => item.jurusan === filterProdi);
-  }
-
-  if (startDate) {
-    filteredData = filteredData.filter(item => new Date(item.date) >= new Date(startDate));
-  }
-
-  if (endDate) {
-    filteredData = filteredData.filter(item => new Date(item.date) <= new Date(endDate));
-  }
-
-  if (searchQuery) {
-    filteredData = filteredData.filter(item => 
-      item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.nrp.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }
-
-  // Sort dengan prioritas Dalam Antrian untuk filter Menunggu
-  if (filterStatus === 'Menunggu') {
-    filteredData = [...filteredData].sort((a, b) => {
-      // Prioritas: Dalam Antrian selalu di atas
-      if (a.status === 'Dalam Antrian' && b.status !== 'Dalam Antrian') return -1;
-      if (a.status !== 'Dalam Antrian' && b.status === 'Dalam Antrian') return 1;
-      
-      // Dalam grup yang sama, sort berdasarkan pilihan user
-      if (sortBy === 'terbaru') {
-        return new Date(b.date) - new Date(a.date);
-      } else if (sortBy === 'terlama') {
-        return new Date(a.date) - new Date(b.date);
-      }
-      return 0;
-    });
-  } else {
-    // Sort normal untuk filter lainnya
-    if (sortBy === 'terbaru') {
-      filteredData = [...filteredData].sort((a, b) => new Date(b.date) - new Date(a.date));
-    } else if (sortBy === 'terlama') {
-      filteredData = [...filteredData].sort((a, b) => new Date(a.date) - new Date(b.date));
-    }
-  }
-
-  // Pagination
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const totalPages = Math.ceil(allData.length / rowsPerPage);
   const startIndex = (page - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
+  const paginatedData = allData.slice(startIndex, endIndex);
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -181,7 +146,7 @@ const History = () => {
         <DataInfo
           startIndex={startIndex}
           endIndex={endIndex}
-          totalData={filteredData.length}
+          totalData={allData.length}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleRowsPerPageChange}
         />

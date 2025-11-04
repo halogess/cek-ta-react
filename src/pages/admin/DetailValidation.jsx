@@ -37,6 +37,7 @@ const DetailValidation = () => {
     try {
       setLoading(true);
       const data = await validationService.getValidationById(id);
+      console.log('Validation data:', data);
       setValidation(data);
       
       if (data.errorCount !== null && data.skor !== null) {
@@ -44,6 +45,8 @@ const DetailValidation = () => {
           validationService.getDocumentStructure(id),
           validationService.getValidationErrors(id)
         ]);
+        console.log('Structure data:', structureData);
+        console.log('Structure length:', structureData.length);
         setDocumentStructure(structureData);
         setErrors(errorsData);
       }
@@ -68,13 +71,37 @@ const DetailValidation = () => {
         </Button>
         <Stack direction="row" spacing={1}>
           <Button variant="outlined" size="small" startIcon={<FileDownloadOutlined />}>
-            Unduh DOCX
+            Unduh ZIP
           </Button>
           <Button variant="outlined" size="small" startIcon={<PictureAsPdfOutlined />}>
             Unduh PDF
           </Button>
         </Stack>
       </Box>
+
+      <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+        <Typography variant="h6" fontWeight="600" gutterBottom>
+          Informasi Mahasiswa
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary">Nama</Typography>
+            <Typography variant="body1" fontWeight="500">{validation?.nama}</Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary">NRP</Typography>
+            <Typography variant="body1" fontWeight="500">{validation?.nrp}</Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary">Jurusan</Typography>
+            <Typography variant="body1" fontWeight="500">{validation?.jurusan}</Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary">Judul {validation?.type === 'book' ? 'Buku' : 'TA'}</Typography>
+            <Typography variant="body1" fontWeight="500">{validation?.judulTA || validation?.judulBuku}</Typography>
+          </Box>
+        </Box>
+      </Paper>
 
       {isPassedValidation && (
         <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #10B981', bgcolor: '#ECFDF5' }}>
@@ -93,8 +120,6 @@ const DetailValidation = () => {
           </Stack>
         </Paper>
       )}
-
-      {!isPassedValidation && hasValidationData && <ValidationSummary errorCount={validation?.errorCount || 0} score={validation?.skor || 0} />}
 
       {documentStatus === 'Dalam Antrian' && (
         <Paper elevation={0} sx={{ p: 4, borderRadius: '12px', border: '1px solid #DBEAFE', bgcolor: '#EFF6FF', textAlign: 'center' }}>
@@ -118,23 +143,46 @@ const DetailValidation = () => {
         </Paper>
       )}
 
-      {hasValidationData && <DocumentStructurePanel documentStructure={documentStructure} expanded={expanded} onExpand={handleChange} />}
+      {documentStatus === 'Dibatalkan' && (
+        <Paper elevation={0} sx={{ p: 4, borderRadius: '12px', border: '1px solid #E5E7EB', bgcolor: '#F9FAFB', textAlign: 'center' }}>
+          <Typography variant="h6" fontWeight="600" gutterBottom>
+            Dokumen Dibatalkan
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Validasi dokumen telah dibatalkan
+          </Typography>
+        </Paper>
+      )}
 
-      {hasValidationData && (
-      <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', lg: 'row' }, alignItems: 'stretch' }}>
-        <Box sx={{ flex: 1, width: '100%' }}>
-          <ErrorListPanel errors={errors} selectedError={selectedError} onSelectError={setSelectedError} showRecommendations={false} />
-        </Box>
+      {(documentStatus === 'Lolos' || documentStatus === 'Tidak Lolos') && hasValidationData && (
+        <>
+          {!isPassedValidation && <ValidationSummary errorCount={validation?.errorCount || 0} score={validation?.skor || 0} />}
+          
+          <DocumentStructurePanel documentStructure={documentStructure} expanded={expanded} onExpand={handleChange} />
 
-        <Box sx={{ flex: 1, width: '100%' }}>
-          <DocumentPreview 
-            selectedError={selectedError} 
-            totalErrors={errors.length}
-            onPrevious={() => setSelectedError(selectedError - 1)}
-            onNext={() => setSelectedError(selectedError + 1)}
-          />
-        </Box>
-      </Box>
+          {errors.length === 0 ? (
+            <Paper elevation={0} sx={{ p: 4, borderRadius: '12px', border: '2px solid #10B981', bgcolor: '#ECFDF5', textAlign: 'center' }}>
+              <Typography variant="h3" sx={{ mb: 1 }}>🎉</Typography>
+              <Typography variant="h5" fontWeight="600" color="#065F46" gutterBottom>Bagus!</Typography>
+              <Typography variant="body1" color="#047857">Tidak ada kesalahan yang ditemukan</Typography>
+            </Paper>
+          ) : (
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', lg: 'row' }, alignItems: 'stretch' }}>
+              <Box sx={{ flex: 1, width: '100%' }}>
+                <ErrorListPanel errors={errors} selectedError={selectedError} onSelectError={setSelectedError} showRecommendations={false} />
+              </Box>
+
+              <Box sx={{ flex: 1, width: '100%' }}>
+                <DocumentPreview 
+                  selectedError={selectedError} 
+                  totalErrors={errors.length}
+                  onPrevious={() => setSelectedError(selectedError - 1)}
+                  onNext={() => setSelectedError(selectedError + 1)}
+                />
+              </Box>
+            </Box>
+          )}
+        </>
       )}
     </Stack>
   );
