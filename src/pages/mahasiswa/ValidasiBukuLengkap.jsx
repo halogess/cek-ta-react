@@ -36,6 +36,7 @@ export default function UploadBuku() {
   const [validationHistoryData, setValidationHistoryData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasQueuedBook, setHasQueuedBook] = useState(false);
+  const [judulBuku, setJudulBuku] = useState('');
 
   useEffect(() => {
     setHeaderInfo({ title: 'Validasi Buku Lengkap' });
@@ -61,7 +62,10 @@ export default function UploadBuku() {
   };
 
   useEffect(() => {
-    if (user) fetchValidations();
+    if (user) {
+      fetchValidations();
+      setJudulBuku('Sistem Informasi Manajemen Perpustakaan Berbasis Web');
+    }
   }, [user, filterStatus, sortBy, searchQuery]);
 
   useEffect(() => {
@@ -194,6 +198,7 @@ export default function UploadBuku() {
         onClose={() => setOpenCreateDialog(false)}
         onSubmit={handleCreateSubmit}
         hasQueuedBook={hasQueuedBook}
+        judulBuku={judulBuku}
       />
 
       <ConfirmDialog

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Paper, Typography, Box, Stack, IconButton, Tooltip } from '@mui/material';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import { CancelOutlined, DownloadOutlined } from '@mui/icons-material';
@@ -41,7 +40,7 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
       <Box sx={{ minWidth: 0, flex: 1 }}>
         {isAdminView ? (
           <>
-            <Typography fontWeight="600" noWrap>{judulTA || judulBuku}</Typography>
+            <Typography fontWeight="600" noWrap>{type === 'book' ? judulBuku : judulTA}</Typography>
             <Stack direction="row" spacing={1} divider={<Typography color="text.secondary">•</Typography>}>
               {type === 'book' ? (
                 <Typography variant="body2" color="text.secondary">{totalFiles} file</Typography>
@@ -56,7 +55,9 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
           </>
         ) : (
           <>
-            <Typography fontWeight="600" noWrap>{type === 'book' ? judulBuku : filename}</Typography>
+            <Typography fontWeight="600" noWrap>
+              {type === 'book' ? filename : filename}
+            </Typography>
             <Stack direction="row" spacing={1} divider={<Typography color="text.secondary">•</Typography>}>
               <Typography variant="body2" color="text.secondary">Diupload pada {date}</Typography>
               {type === 'book' ? (

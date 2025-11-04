@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, Box, Typography, TextField, Alert } from '@mui/material';
-import { UploadFileOutlined, Close } from '@mui/icons-material';
+import { UploadFileOutlined, Close, AttachFile } from '@mui/icons-material';
 
-export default function ValidasiBukuDialog({ open, onClose, onSubmit, hasQueuedBook }) {
+export default function ValidasiBukuDialog({ open, onClose, onSubmit, hasQueuedBook, judulBuku }) {
   const [numChapters, setNumChapters] = useState('');
-  const [judulBuku, setJudulBuku] = useState('');
   const [files, setFiles] = useState({});
 
   const totalFiles = numChapters ? parseInt(numChapters) + 2 : 0;
@@ -12,7 +11,6 @@ export default function ValidasiBukuDialog({ open, onClose, onSubmit, hasQueuedB
 
   const handleClose = () => {
     setNumChapters('');
-    setJudulBuku('');
     setFiles({});
     onClose();
   };
@@ -31,7 +29,7 @@ export default function ValidasiBukuDialog({ open, onClose, onSubmit, hasQueuedB
     setFiles({});
   };
 
-  const isDisabled = !judulBuku || !numChapters || parseInt(numChapters) < 1 || Object.keys(files).length !== totalFiles || hasQueuedBook;
+  const isDisabled = !numChapters || parseInt(numChapters) < 1 || Object.keys(files).length !== totalFiles || hasQueuedBook;
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -51,13 +49,10 @@ export default function ValidasiBukuDialog({ open, onClose, onSubmit, hasQueuedB
             </Alert>
           )}
 
-          <TextField
-            label="Judul Buku TA"
-            value={judulBuku}
-            onChange={(e) => setJudulBuku(e.target.value)}
-            fullWidth
-            disabled={hasQueuedBook}
-          />
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>Judul Buku TA</Typography>
+            <Typography variant="body1" fontWeight="500">{judulBuku || 'Memuat judul...'}</Typography>
+          </Box>
 
           <TextField
             label="Jumlah BAB"
@@ -73,44 +68,141 @@ export default function ValidasiBukuDialog({ open, onClose, onSubmit, hasQueuedB
 
           {numChapters && (
             <Stack spacing={2}>
-              <Box sx={{ p: 2, backgroundColor: '#F8FAFC', borderRadius: '8px' }}>
-                <Typography variant="body2" fontWeight="medium" gutterBottom>Cover/Abstrak</Typography>
+              <Box sx={{ 
+                p: 2.5, 
+                border: '2px solid #E0E7FF', 
+                borderRadius: '12px',
+                bgcolor: files['cover'] ? '#F0F9FF' : '#FAFAFA',
+                transition: 'all 0.2s'
+              }}>
+                <Typography variant="body1" fontWeight="600" sx={{ mb: 1.5 }}>Cover/Abstrak</Typography>
                 <input
                   type="file"
                   accept=".docx"
                   onChange={(e) => handleFileChange('cover', e.target.files[0])}
                   disabled={hasQueuedBook}
-                  style={{ width: '100%' }}
+                  id="file-cover"
+                  style={{ display: 'none' }}
                 />
+                <label htmlFor="file-cover">
+                  <Button
+                    component="span"
+                    variant="outlined"
+                    startIcon={<AttachFile />}
+                    disabled={hasQueuedBook}
+                    fullWidth
+                    sx={{ 
+                      justifyContent: 'flex-start', 
+                      textTransform: 'none', 
+                      py: 1.5,
+                      color: files['cover'] ? '#3B82F6' : '#000',
+                      borderColor: files['cover'] ? '#3B82F6' : '#000'
+                    }}
+                  >
+                    {files['cover'] ? files['cover'].name : 'Pilih file .docx'}
+                  </Button>
+                </label>
+                {files['cover'] && (
+                  <Typography variant="caption" color="success.main" sx={{ mt: 1, display: 'block' }}>
+                    ✓ File berhasil dipilih
+                  </Typography>
+                )}
               </Box>
 
               {[...Array(chapters)].map((_, i) => (
-                <Box key={i} sx={{ p: 2, backgroundColor: '#F8FAFC', borderRadius: '8px' }}>
-                  <Typography variant="body2" fontWeight="medium" gutterBottom>BAB {i + 1}</Typography>
+                <Box key={i} sx={{ 
+                  p: 2.5, 
+                  border: '2px solid #E0E7FF', 
+                  borderRadius: '12px',
+                  bgcolor: files[`bab${i + 1}`] ? '#F0F9FF' : '#FAFAFA',
+                  transition: 'all 0.2s'
+                }}>
+                  <Typography variant="body1" fontWeight="600" sx={{ mb: 1.5 }}>BAB {i + 1}</Typography>
                   <input
                     type="file"
                     accept=".docx"
                     onChange={(e) => handleFileChange(`bab${i + 1}`, e.target.files[0])}
                     disabled={hasQueuedBook}
-                    style={{ width: '100%' }}
+                    id={`file-bab${i + 1}`}
+                    style={{ display: 'none' }}
                   />
+                  <label htmlFor={`file-bab${i + 1}`}>
+                    <Button
+                      component="span"
+                      variant="outlined"
+                      startIcon={<AttachFile />}
+                      disabled={hasQueuedBook}
+                      fullWidth
+                      sx={{ 
+                        justifyContent: 'flex-start', 
+                        textTransform: 'none', 
+                        py: 1.5,
+                        color: files[`bab${i + 1}`] ? '#3B82F6' : '#000',
+                        borderColor: files[`bab${i + 1}`] ? '#3B82F6' : '#000'
+                      }}
+                    >
+                      {files[`bab${i + 1}`] ? files[`bab${i + 1}`].name : 'Pilih file .docx'}
+                    </Button>
+                  </label>
+                  {files[`bab${i + 1}`] && (
+                    <Typography variant="caption" color="success.main" sx={{ mt: 1, display: 'block' }}>
+                      ✓ File berhasil dipilih
+                    </Typography>
+                  )}
                 </Box>
               ))}
 
-              <Box sx={{ p: 2, backgroundColor: '#F8FAFC', borderRadius: '8px' }}>
-                <Typography variant="body2" fontWeight="medium" gutterBottom>Daftar Pustaka/Lampiran</Typography>
+              <Box sx={{ 
+                p: 2.5, 
+                border: '2px solid #E0E7FF', 
+                borderRadius: '12px',
+                bgcolor: files['pustaka'] ? '#F0F9FF' : '#FAFAFA',
+                transition: 'all 0.2s'
+              }}>
+                <Typography variant="body1" fontWeight="600" sx={{ mb: 1.5 }}>Daftar Pustaka/Lampiran</Typography>
                 <input
                   type="file"
                   accept=".docx"
                   onChange={(e) => handleFileChange('pustaka', e.target.files[0])}
                   disabled={hasQueuedBook}
-                  style={{ width: '100%' }}
+                  id="file-pustaka"
+                  style={{ display: 'none' }}
                 />
+                <label htmlFor="file-pustaka">
+                  <Button
+                    component="span"
+                    variant="outlined"
+                    startIcon={<AttachFile />}
+                    disabled={hasQueuedBook}
+                    fullWidth
+                    sx={{ 
+                      justifyContent: 'flex-start', 
+                      textTransform: 'none', 
+                      py: 1.5,
+                      color: files['pustaka'] ? '#3B82F6' : '#000',
+                      borderColor: files['pustaka'] ? '#3B82F6' : '#000'
+                    }}
+                  >
+                    {files['pustaka'] ? files['pustaka'].name : 'Pilih file .docx'}
+                  </Button>
+                </label>
+                {files['pustaka'] && (
+                  <Typography variant="caption" color="success.main" sx={{ mt: 1, display: 'block' }}>
+                    ✓ File berhasil dipilih
+                  </Typography>
+                )}
               </Box>
 
-              <Typography variant="body2" color="text.secondary" textAlign="center">
-                {Object.keys(files).length} / {totalFiles} file dipilih
-              </Typography>
+              <Box sx={{ 
+                p: 2, 
+                bgcolor: Object.keys(files).length === totalFiles ? '#ECFDF5' : '#FEF3C7', 
+                borderRadius: '8px',
+                border: `1px solid ${Object.keys(files).length === totalFiles ? '#10B981' : '#F59E0B'}`
+              }}>
+                <Typography variant="body2" fontWeight="600" textAlign="center" color={Object.keys(files).length === totalFiles ? '#065F46' : '#92400E'}>
+                  {Object.keys(files).length === totalFiles ? '✓ Semua file sudah dipilih!' : `${Object.keys(files).length} / ${totalFiles} file dipilih`}
+                </Typography>
+              </Box>
             </Stack>
           )}
         </Stack>

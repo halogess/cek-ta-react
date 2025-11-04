@@ -178,7 +178,13 @@ export const bookErrors = [
     severity: 'Tinggi',
     title: 'Font tidak sesuai pada BAB 1',
     location: 'Halaman 3, Paragraf 2',
-    steps: ['Pilih teks', 'Ubah font ke Times New Roman 12pt']
+    steps: [
+      'Pilih seluruh teks yang bermasalah di halaman 3 paragraf 2',
+      'Klik kanan dan pilih Font atau tekan Ctrl+D',
+      'Ubah font menjadi Times New Roman ukuran 12pt',
+      'Klik OK untuk menerapkan perubahan'
+    ],
+    tips: 'Gunakan fitur "Find & Replace" (Ctrl+H) untuk mengubah semua font Arial menjadi Times New Roman sekaligus di seluruh dokumen. Ini lebih efisien daripada mengubah satu per satu.'
   },
   {
     fileIndex: 1,
@@ -186,7 +192,13 @@ export const bookErrors = [
     severity: 'Sedang',
     title: 'Spasi antar baris tidak konsisten',
     location: 'Halaman 5, Paragraf 3-5',
-    steps: ['Pilih paragraf', 'Ubah line spacing ke 1.5']
+    steps: [
+      'Pilih paragraf 3 sampai 5 di halaman 5',
+      'Klik kanan dan pilih Paragraph',
+      'Di bagian Line spacing, pilih 1.5 lines',
+      'Klik OK untuk menerapkan'
+    ],
+    tips: 'Buat Style khusus untuk paragraf body text dengan line spacing 1.5 agar konsisten di seluruh dokumen. Gunakan Home > Styles untuk membuat dan menerapkan style.'
   },
   {
     fileIndex: 2,
@@ -194,7 +206,14 @@ export const bookErrors = [
     severity: 'Tinggi',
     title: 'Margin kiri tidak sesuai',
     location: 'Seluruh BAB 2',
-    steps: ['Buka Layout > Margins', 'Ubah margin kiri ke 4cm']
+    steps: [
+      'Buka tab Layout di ribbon',
+      'Klik Margins > Custom Margins',
+      'Ubah Left margin menjadi 4 cm',
+      'Pastikan "Apply to: Whole document" dipilih',
+      'Klik OK'
+    ],
+    tips: 'Periksa apakah ada section break yang membuat margin berbeda. Gunakan Show/Hide (Ctrl+Shift+8) untuk melihat section breaks tersembunyi.'
   },
   {
     fileIndex: 2,
@@ -202,7 +221,14 @@ export const bookErrors = [
     severity: 'Sedang',
     title: 'Caption tabel tidak sesuai format',
     location: 'Tabel 2.1, Halaman 12',
-    steps: ['Klik kanan tabel', 'Insert Caption dengan format yang benar']
+    steps: [
+      'Klik kanan pada tabel',
+      'Pilih Insert Caption',
+      'Pastikan Label adalah "Tabel"',
+      'Ketik judul tabel setelah nomor',
+      'Posisikan caption di atas tabel'
+    ],
+    tips: 'Gunakan fitur Caption otomatis agar penomoran tabel update otomatis saat menambah/menghapus tabel. Jangan ketik nomor tabel secara manual.'
   },
   {
     fileIndex: 3,
@@ -210,7 +236,14 @@ export const bookErrors = [
     severity: 'Sedang',
     title: 'Resolusi gambar terlalu rendah',
     location: 'Gambar 3.2, Halaman 25',
-    steps: ['Ganti dengan gambar resolusi minimal 300 DPI']
+    steps: [
+      'Hapus gambar yang ada dengan resolusi rendah',
+      'Siapkan gambar baru dengan resolusi minimal 300 DPI',
+      'Insert gambar: Insert > Pictures > This Device',
+      'Atur ukuran gambar agar proporsional',
+      'Tambahkan caption di bawah gambar'
+    ],
+    tips: 'Simpan gambar dalam format PNG untuk grafik/diagram atau JPEG untuk foto. Hindari memperbesar gambar kecil karena akan blur. Gunakan gambar dengan ukuran asli yang sudah besar.'
   },
   {
     fileIndex: 4,
@@ -218,6 +251,44 @@ export const bookErrors = [
     severity: 'Tinggi',
     title: 'Penomoran halaman tidak konsisten',
     location: 'Halaman 30-35',
-    steps: ['Periksa section breaks', 'Perbaiki penomoran']
+    steps: [
+      'Klik di halaman yang penomorannya bermasalah',
+      'Double-click pada nomor halaman untuk masuk ke Header/Footer',
+      'Pastikan "Link to Previous" tidak aktif jika ingin penomoran berbeda',
+      'Klik Page Number > Format Page Numbers',
+      'Pilih "Continue from previous section"',
+      'Klik OK dan tutup Header/Footer'
+    ],
+    tips: 'Gunakan Section Breaks (Layout > Breaks > Next Page) untuk memisahkan bagian dengan penomoran berbeda. Bagian awal (cover, abstrak) biasanya pakai romawi (i, ii, iii), isi pakai angka (1, 2, 3).'
+  },
+  {
+    fileIndex: 5,
+    category: 'Referensi',
+    severity: 'Tinggi',
+    title: 'Format referensi tidak konsisten',
+    location: 'Daftar Pustaka, Halaman 45-48',
+    steps: [
+      'Periksa setiap entri di daftar pustaka',
+      'Pastikan format sesuai standar (APA/IEEE)',
+      'Urutkan secara alfabetis berdasarkan nama penulis',
+      'Periksa konsistensi penggunaan italic untuk judul',
+      'Pastikan semua URL dapat diakses'
+    ],
+    tips: 'Gunakan reference manager seperti Mendeley, Zotero, atau EndNote untuk mengelola referensi. Tools ini otomatis memformat referensi sesuai standar yang dipilih dan menjaga konsistensi.'
+  },
+  {
+    fileIndex: 5,
+    category: 'Indentasi',
+    severity: 'Sedang',
+    title: 'Indentasi daftar pustaka tidak sesuai (hanging indent)',
+    location: 'Daftar Pustaka, Halaman 45-48',
+    steps: [
+      'Pilih semua entri daftar pustaka',
+      'Klik kanan > Paragraph',
+      'Di bagian Indentation, pilih Special: Hanging',
+      'Atur By: 1 cm atau 0.5 inch',
+      'Klik OK'
+    ],
+    tips: 'Hanging indent membuat baris pertama rata kiri, baris berikutnya menjorok ke dalam. Ini standar untuk daftar pustaka agar mudah dibaca dan nama penulis terlihat jelas.'
   }
 ];

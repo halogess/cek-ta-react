@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { Box, Stack, Paper, Typography } from '@mui/material';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import Loading from '../../components/shared/ui/Loading';
 import { useHeader } from '../../context/HeaderContext';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +29,7 @@ export default function MahasiswaDashboard() {
   // State untuk data dan UI
   const [dokumenData, setDokumenData] = useState([]);
   const [bukuData, setBukuData] = useState([]);
+  const [judulBuku, setJudulBuku] = useState('');
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
@@ -84,6 +86,7 @@ export default function MahasiswaDashboard() {
       setBukuData(data.buku.history);
       setDokumenStats(data.dokumen.stats);
       setBukuStats(data.buku.stats);
+      setJudulBuku(data.judulBuku || '');
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -122,6 +125,21 @@ export default function MahasiswaDashboard() {
   return (
     <>
       <Stack spacing={3} sx={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+        {/* Judul Buku TA */}
+        {judulBuku && (
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#F8FAFC' }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '12px', bgcolor: '#3B82F6', color: 'white' }}>
+                <MenuBookIcon sx={{ fontSize: 28 }} />
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">Judul Buku TA</Typography>
+                <Typography variant="h6" fontWeight="600">{judulBuku}</Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        )}
+        
         {/* Cek Dokumen Section */}
         <Paper elevation={0} sx={{ p: 3, borderRadius: '16px', border: '1px solid #E2E8F0', minWidth: 0 }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, width: '100%', gap: 3, minWidth: 0 }}>

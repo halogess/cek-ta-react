@@ -1,4 +1,3 @@
-import React from 'react';
 import { Paper, Typography, Box } from '@mui/material';
 
 const StatCard = ({ title, value, subtitle, icon, iconColor, action, onClick, isTotal = false }) => (

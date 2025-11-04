@@ -729,6 +729,7 @@ const mockApiClient = {
       if (pathParts.length === 4 || (pathParts.length === 5 && pathParts[4] === '')) {
         const dokumenData = getValidationsByUser(userId).sort((a, b) => new Date(b.date) - new Date(a.date));
         const bukuData = getBookValidationsByUser(userId).sort((a, b) => new Date(b.date) - new Date(a.date));
+        const judulBuku = bukuData.length > 0 ? bukuData[0].judulBuku : '';
         
         return {
           dokumen: {
@@ -750,7 +751,8 @@ const mockApiClient = {
               cancelled: bukuData.filter(v => v.status === 'Dibatalkan').length
             },
             history: bukuData.slice(0, 3)
-          }
+          },
+          judulBuku
         };
       }
       
