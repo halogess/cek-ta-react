@@ -27,6 +27,7 @@ export default function Upload() {
   const [tempSearchQuery, setTempSearchQuery] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const createFromUrl = searchParams.get('create') === 'true';
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCancelSuccess, setShowCancelSuccess] = useState(false);
@@ -41,6 +42,12 @@ export default function Upload() {
     setHeaderInfo({ title: 'Cek Dokumen' });
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
+
+  useEffect(() => {
+    if (createFromUrl) {
+      setOpenCreateDialog(true);
+    }
+  }, [createFromUrl]);
 
   const fetchValidations = async () => {
     try {

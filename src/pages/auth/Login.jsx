@@ -60,7 +60,10 @@ const Login = () => {
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        backgroundColor: 'background.default',
+        backgroundImage: 'url("https://i.pinimg.com/736x/b2/90/c8/b290c8fbb34d9880048409d1face21a1.jpg?w=1920&q=80")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         p: 2,
       }}
     >

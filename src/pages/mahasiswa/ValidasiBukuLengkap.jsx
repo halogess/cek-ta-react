@@ -27,6 +27,7 @@ export default function UploadBuku() {
   const [tempSearchQuery, setTempSearchQuery] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const createFromUrl = searchParams.get('create') === 'true';
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCancelSuccess, setShowCancelSuccess] = useState(false);
@@ -42,6 +43,12 @@ export default function UploadBuku() {
     setHeaderInfo({ title: 'Validasi Buku Lengkap' });
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
+
+  useEffect(() => {
+    if (createFromUrl) {
+      setOpenCreateDialog(true);
+    }
+  }, [createFromUrl]);
 
   const fetchValidations = async () => {
     try {
@@ -61,10 +68,19 @@ export default function UploadBuku() {
     }
   };
 
+  const fetchJudulBuku = async () => {
+    try {
+      const result = await validationService.getJudulBukuByUser(user);
+      setJudulBuku(result.judulBuku);
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchValidations();
-      setJudulBuku('Sistem Informasi Manajemen Perpustakaan Berbasis Web');
+      fetchJudulBuku();
     }
   }, [user, filterStatus, sortBy, searchQuery]);
 

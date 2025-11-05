@@ -105,7 +105,7 @@ export default function MahasiswaDashboard() {
     onDetail: (id) => navigate(`/mahasiswa/detail/${id}`),
     onDownload: handleDownloadCertificate,
     onViewMore: () => navigate('/mahasiswa/upload'),
-    onCreate: () => navigate('/mahasiswa/upload'),
+    onCreate: () => navigate('/mahasiswa/upload?create=true'),
     onNavigate: (status) => navigate(`/mahasiswa/upload?status=${status}`)
   });
 
@@ -118,7 +118,7 @@ export default function MahasiswaDashboard() {
     onDetail: (id) => navigate(`/mahasiswa/detail/${id}`),
     onDownload: handleDownloadCertificate,
     onViewMore: () => navigate('/mahasiswa/upload-buku'),
-    onCreate: () => navigate('/mahasiswa/upload-buku'),
+    onCreate: () => navigate('/mahasiswa/upload-buku?create=true'),
     onNavigate: (status) => navigate(`/mahasiswa/upload-buku?status=${status}`)
   });
 

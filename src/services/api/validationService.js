@@ -78,6 +78,15 @@ export const validationService = {
   },
 
   /**
+   * Get judul buku by user (from latest book validation)
+   * @param {string} userId - NRP mahasiswa
+   * @returns {Promise} { judulBuku }
+   */
+  getJudulBukuByUser: async (userId) => {
+    return apiClient.get(`/validations/books/user/${userId}/judul`);
+  },
+
+  /**
    * Get all book validations (untuk admin)
    * @param {object} params - { status, prodi, startDate, endDate, search, sort }
    * @returns {Promise} Array of book validation objects
@@ -120,5 +129,24 @@ export const validationService = {
    */
   getDocumentStructure: async (id) => {
     return apiClient.get(`/validations/${id}/structure`);
+  },
+
+  /**
+   * Get recommendations untuk perbaikan dokumen
+   * @param {number} id - Validation ID
+   * @returns {Promise} Array of recommendation objects
+   */
+  getRecommendations: async (id) => {
+    return apiClient.get(`/validations/${id}/recommendations`);
+  },
+
+  /**
+   * Get document preview dengan error highlighting
+   * @param {number} id - Validation ID
+   * @param {number} errorIndex - Index of error to preview
+   * @returns {Promise} Preview data dengan highlight area
+   */
+  getDocumentPreview: async (id, errorIndex) => {
+    return apiClient.get(`/validations/${id}/preview/${errorIndex}`);
   },
 };

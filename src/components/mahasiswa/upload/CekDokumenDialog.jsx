@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, Box, Typography, FormControlLabel, Radio, Alert } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, Box, Typography, Alert } from '@mui/material';
 import { UploadFileOutlined, Close } from '@mui/icons-material';
 import FileUploadArea from '../../shared/ui/FileUploadArea';
 
 export default function CekDokumenDialog({ open, onClose, onSubmit, hasQueuedDoc }) {
   const [file, setFile] = useState(null);
-  const [isConfirmed, setIsConfirmed] = useState(false);
 
   const handleClose = () => {
     setFile(null);
-    setIsConfirmed(false);
     onClose();
   };
 
@@ -18,7 +16,7 @@ export default function CekDokumenDialog({ open, onClose, onSubmit, hasQueuedDoc
     handleClose();
   };
 
-  const isDisabled = !file || !isConfirmed || hasQueuedDoc;
+  const isDisabled = !file || hasQueuedDoc;
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -43,20 +41,6 @@ export default function CekDokumenDialog({ open, onClose, onSubmit, hasQueuedDoc
               Format yang didukung: .docx (Microsoft Word)
             </Typography>
             <FileUploadArea file={file} onFileChange={(e) => setFile(e.target.files[0])} disabled={hasQueuedDoc} />
-          </Box>
-
-          <Box sx={{ border: '1px solid #E2E8F0', borderRadius: '12px', p: 2, backgroundColor: isConfirmed ? '#F0F5FF' : 'transparent' }}>
-            <FormControlLabel
-              control={<Radio checked={isConfirmed} onChange={(e) => setIsConfirmed(e.target.checked)} disabled={hasQueuedDoc} />}
-              label={
-                <Box>
-                  <Typography fontWeight="medium">Konfirmasi Keaslian Dokumen</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Saya menyatakan bahwa dokumen ini adalah hasil karya saya sendiri
-                  </Typography>
-                </Box>
-              }
-            />
           </Box>
         </Stack>
       </DialogContent>
