@@ -1,8 +1,8 @@
 // src/components/login/LoginForm.jsx
 
-import { Box, Typography, TextField, Button, Stack, FormControl, FormHelperText } from '@mui/material';
+import { Box, Typography, TextField, Button, Stack, FormControl, FormHelperText, CircularProgress, Alert } from '@mui/material';
 
-const LoginForm = ({ nrp, setNrp, password, setPassword, handleSubmit, error }) => {
+const LoginForm = ({ nrp, setNrp, password, setPassword, handleSubmit, error, loading }) => {
   return (
     <Box
       sx={{
@@ -53,8 +53,26 @@ const LoginForm = ({ nrp, setNrp, password, setPassword, handleSubmit, error }) 
             {error.password && <FormHelperText>{error.password}</FormHelperText>}
           </FormControl>
 
-          <Button type="submit" fullWidth variant="contained" size="large" sx={{ py: 1.5 }} >
-            Masuk
+          {error.general && (
+            <Alert severity="error" sx={{ borderRadius: 2 }}>
+              {error.general}
+            </Alert>
+          )}
+
+          <Button 
+            type="submit" 
+            fullWidth 
+            variant="contained" 
+            size="large" 
+            sx={{ py: 1.5 }}
+            disabled={loading}
+          >
+            {loading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} color="inherit" />
+                <span>TUNGGU SEBENTAR</span>
+              </Box>
+            ) : 'Masuk'}
           </Button>
 
           <Typography variant="body2" pt={1} textAlign="center" color="text.secondary">

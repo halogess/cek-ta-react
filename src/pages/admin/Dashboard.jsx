@@ -23,10 +23,20 @@ export default function AdminDashboard() {
       setLoading(true);
       const statsData = await dashboardService.getAdminStats();
       const errorStatsData = await dashboardService.getErrorStatistics();
-      setStats(statsData);
-      setErrorStats(errorStatsData);
+      console.log('📊 Dashboard stats:', statsData);
+      console.log('📊 Error stats:', errorStatsData);
+      setStats({
+        total: statsData?.total || 0,
+        waiting: statsData?.waiting || 0,
+        passed: statsData?.passed || 0,
+        needsFix: statsData?.needsFix || 0,
+        usersByProdi: statsData?.usersByProdi || {}
+      });
+      setErrorStats(errorStatsData || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setStats({ total: 0, waiting: 0, passed: 0, needsFix: 0, usersByProdi: {} });
+      setErrorStats([]);
     } finally {
       setLoading(false);
     }

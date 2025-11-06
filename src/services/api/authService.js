@@ -8,12 +8,22 @@ import apiClient from './client';
 export const authService = {
   /**
    * Login user (admin atau mahasiswa)
-   * @param {string} nrp - NRP mahasiswa atau 'admin'
+   * @param {string} username - Username mahasiswa atau 'admin'
    * @param {string} password - Password user
-   * @returns {Promise} { token, user: { nrp, role } }
+   * @returns {Promise} { access_token, refresh_token, user: { nrp, role } }
    */
-  login: async (nrp, password) => {
-    return apiClient.post('/auth/login', { nrp, password });
+  login: async (username, password) => {
+    const response = await apiClient.post('/auth/login', { username, password });
+    
+    // Simpan tokens ke localStorage
+    if (response.access_token) {
+      localStorage.setItem('access_token', response.access_token);
+    }
+    if (response.refresh_token) {
+      localStorage.setItem('refresh_token', response.refresh_token);
+    }
+    
+    return response;
   },
 
   /**

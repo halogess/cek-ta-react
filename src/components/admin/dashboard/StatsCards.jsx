@@ -3,14 +3,16 @@ import { FileCopyOutlined, CheckCircleOutline, ErrorOutlineOutlined, HourglassEm
 import { useNavigate } from 'react-router-dom';
 import StatCard from '../../shared/ui/StatCard';
 
-export default function StatsCards({ stats = { total: 0, waiting: 0, passed: 0, needsFix: 0 } }) {
+export default function StatsCards({ stats }) {
   const navigate = useNavigate();
+
+  if (!stats) return null;
 
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 3 }}>
       <StatCard 
         title="Total Validasi" 
-        value={stats.total.toString()} 
+        value={(stats.total || 0).toString()} 
         subtitle="Dokumen yang divalidasi"
         icon={<FileCopyOutlined />} 
         iconColor="#9333EA"
@@ -18,7 +20,7 @@ export default function StatsCards({ stats = { total: 0, waiting: 0, passed: 0, 
       />
       <StatCard 
         title="Menunggu" 
-        value={stats.waiting.toString()} 
+        value={(stats.waiting || 0).toString()} 
         subtitle="Sedang diproses sistem"
         icon={<HourglassEmptyOutlined />} 
         iconColor="#3B82F6"
@@ -26,7 +28,7 @@ export default function StatsCards({ stats = { total: 0, waiting: 0, passed: 0, 
       />
       <StatCard 
         title="Lolos" 
-        value={stats.passed.toString()} 
+        value={(stats.passed || 0).toString()} 
         subtitle="Memenuhi standar format"
         icon={<CheckCircleOutline />} 
         iconColor="#10B981"
@@ -34,7 +36,7 @@ export default function StatsCards({ stats = { total: 0, waiting: 0, passed: 0, 
       />
       <StatCard 
         title="Tidak Lolos" 
-        value={stats.needsFix.toString()} 
+        value={(stats.needsFix || 0).toString()} 
         subtitle="Perlu diperbaiki"
         icon={<ErrorOutlineOutlined />} 
         iconColor="#EF4444"

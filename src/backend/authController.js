@@ -7,13 +7,15 @@ export const authController = {
   /**
    * Login - validate credentials dan return token
    */
-  login: (nrp, password) => {
+  login: (username, password) => {
     // Simulasi validasi
-    const role = nrp === 'admin' ? 'admin' : 'mahasiswa';
+    const role = username === 'admin' ? 'admin' : 'mahasiswa';
     
     return {
+      accessToken: 'mock-access-token-' + Date.now(),
+      refreshToken: 'mock-refresh-token-' + Date.now(),
       token: 'mock-token-' + Date.now(),
-      user: { nrp, role },
+      user: { nrp: username, role },
     };
   },
 

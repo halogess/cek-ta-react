@@ -34,7 +34,7 @@ function App() {
   const location = useLocation();
   
   // Ambil data user dari Redux store
-  const { role, user } = useSelector((state) => state.user);
+  const { role, user, nama } = useSelector((state) => state.user);
   
   // Ambil info header dari context
   const { headerInfo } = useHeader();
@@ -45,24 +45,14 @@ function App() {
   }, [location.pathname]);
 
   // State untuk nama user yang ditampilkan di header
-  const [displayName, setDisplayName] = useState(role === 'admin' ? 'Administrator' : 'Mahasiswa');
+  const [displayName, setDisplayName] = useState(nama || (role === 'admin' ? 'Administrator' : 'Mahasiswa'));
 
-  // Fetch nama lengkap mahasiswa dari API
+  // Update displayName jika nama dari Redux berubah
   useEffect(() => {
-    const fetchUserName = async () => {
-      // Hanya fetch untuk mahasiswa, admin tetap "Administrator"
-      if (role !== 'admin' && user) {
-        try {
-          const userData = await userService.getUserByNrp(user);
-          setDisplayName(userData.nama);
-        } catch (error) {
-          // Fallback jika gagal fetch
-          setDisplayName('Mahasiswa');
-        }
-      }
-    };
-    fetchUserName();
-  }, [role, user]);
+    if (nama) {
+      setDisplayName(nama);
+    }
+  }, [nama]);
 
   // Handler untuk toggle sidebar (mobile: overlay, desktop: collapse)
   const handleDrawerToggle = () => {

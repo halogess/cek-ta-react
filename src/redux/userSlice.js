@@ -11,9 +11,9 @@ import { createSlice } from '@reduxjs/toolkit';
  * Untuk maintain session setelah refresh
  */
 const loadFromStorage = () => {
-  const token = localStorage.getItem('auth_token');
+  const accessToken = localStorage.getItem('access_token');
   const user = localStorage.getItem('user_data');
-  return token && user ? JSON.parse(user) : null;
+  return accessToken && user ? JSON.parse(user) : null;
 };
 
 // Load saved user data
@@ -21,7 +21,8 @@ const savedUser = loadFromStorage();
 
 // Initial state - restore dari localStorage jika ada
 const initialState = {
-  user: savedUser?.nrp || null, // NRP mahasiswa atau 'admin'
+  user: savedUser?.username || null, // Username (NRP mahasiswa atau 'admin')
+  nama: savedUser?.nama || null, // Nama lengkap user
   role: savedUser?.role || null, // 'admin' atau 'mahasiswa'
   isAuthenticated: !!savedUser, // true jika ada saved user
 };
@@ -36,12 +37,27 @@ export const userSlice = createSlice({
      * Simpan data user ke state dan localStorage
      */
     loginSuccess: (state, action) => {
+      console.log('📥 Redux loginSuccess called with:', action.payload);
       state.isAuthenticated = true;
       state.user = action.payload.user;
+      state.nama = action.payload.nama;
       state.role = action.payload.role;
       // Persist ke localStorage
-      localStorage.setItem('auth_token', action.payload.token);
-      localStorage.setItem('user_data', JSON.stringify({ nrp: action.payload.user, role: action.payload.role }));
+      if (action.payload.accessToken) {
+        localStorage.setItem('access_token', action.payload.accessToken);
+        console.log('✅ access_token saved to localStorage');
+      }
+      if (action.payload.refreshToken) {
+        localStorage.setItem('refresh_token', action.payload.refreshToken);
+        console.log('✅ refresh_token saved to localStorage');
+      }
+      localStorage.setItem('auth_token', action.payload.token || action.payload.accessToken);
+      localStorage.setItem('user_data', JSON.stringify({ 
+        username: action.payload.user, 
+        nama: action.payload.nama,
+        role: action.payload.role 
+      }));
+      console.log('✅ Redux state updated:', { user: state.user, role: state.role, isAuthenticated: state.isAuthenticated });
     },
     /**
      * Action untuk logout
@@ -50,8 +66,11 @@ export const userSlice = createSlice({
     logout: (state) => {
       state.isAuthenticated = false;
       state.user = null;
+      state.nama = null;
       state.role = null;
       // Clear localStorage
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_data');
     },

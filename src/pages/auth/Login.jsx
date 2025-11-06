@@ -12,6 +12,8 @@ import LoginForm from '../../components/shared/auth/LoginForm';
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../../redux/userSlice';
 import { authService, handleApiError } from '../../services';
+import { decodeToken } from '../../utils/jwtHelper';
+
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ const Login = () => {
   const [nrp, setNrp] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState({});
+  const [loading, setLoading] = useState(false);
 
   /**
    * Handle login submit
@@ -41,14 +44,41 @@ const Login = () => {
     // Jika validasi lolos, lakukan login
     if (Object.keys(newErrors).length === 0) {
       try {
+        setLoading(true);
+        console.log('🔐 Starting login with:', { username: nrp });
         const response = await authService.login(nrp, password);
-        // Simpan ke Redux dan localStorage
-        dispatch(loginSuccess({ user: response.user.nrp, role: response.user.role, token: response.token }));
-        // Redirect sesuai role
-        navigate(response.user.role === 'admin' ? '/admin' : '/mahasiswa');
+        console.log('✅ Login response:', response);
+        
+        // Decode access token untuk extract user info
+        const tokenPayload = decodeToken(response.access_token);
+        console.log('🔓 Token payload:', tokenPayload);
+        
+        if (!tokenPayload) {
+          throw new Error('Failed to decode token');
+        }
+        
+        const loginData = { 
+          user: tokenPayload.username,
+          nama: tokenPayload.nama,
+          role: tokenPayload.role,
+          token: response.access_token,
+          accessToken: response.access_token,
+          refreshToken: response.refresh_token
+        };
+        
+        console.log('📦 Dispatching loginSuccess with:', loginData);
+        dispatch(loginSuccess(loginData));
+        
+        const redirectPath = tokenPayload.role === 'admin' ? '/admin' : '/mahasiswa';
+        console.log('🚀 Redirecting to:', redirectPath);
+        navigate(redirectPath);
+        
+        console.log('✅ Navigation called');
       } catch (error) {
-        const errorInfo = handleApiError(error);
-        setError({ general: errorInfo.message });
+        console.error('❌ Login error:', error);
+        setError({ general: error.message || 'Terjadi kesalahan saat login' });
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -95,6 +125,7 @@ const Login = () => {
               setPassword={setPassword}
               handleSubmit={handleLogin}
               error={error}
+              loading={loading}
             />
           </Grid>
         </Grid>

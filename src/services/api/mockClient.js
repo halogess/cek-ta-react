@@ -18,6 +18,7 @@ const delay = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms));
 
 const mockApiClient = {
   get: async (endpoint, options = {}) => {
+    console.log('🔵 Mock GET:', endpoint, options.params);
     await delay();
     
     if (endpoint === '/validations/books') {
@@ -132,11 +133,12 @@ const mockApiClient = {
   },
 
   post: async (endpoint, data) => {
+    console.log('🔵 Mock POST:', endpoint, data);
     await delay();
     
     if (endpoint === '/auth/login') {
-      const { nrp, password } = data;
-      return authController.login(nrp, password);
+      const { username, password } = data;
+      return authController.login(username, password);
     }
     
     if (endpoint === '/auth/logout') {
@@ -147,6 +149,7 @@ const mockApiClient = {
   },
 
   put: async (endpoint, data) => {
+    console.log('🔵 Mock PUT:', endpoint, data);
     await delay();
     
     if (endpoint.includes('/cancel')) {
@@ -173,11 +176,16 @@ const mockApiClient = {
   },
 
   delete: async (endpoint) => {
+    console.log('🔵 Mock DELETE:', endpoint);
     await delay();
     return templateController.deleteTemplate(parseInt(endpoint.split('/')[2]));
   },
 
   upload: async (endpoint, formData) => {
+    console.log('🔵 Mock UPLOAD:', endpoint, {
+      file: formData.get('file')?.name,
+      metadata: formData.get('metadata'),
+    });
     await delay(1000);
     
     if (endpoint === '/validations/upload') {

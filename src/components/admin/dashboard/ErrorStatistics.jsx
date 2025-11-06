@@ -18,7 +18,11 @@ export default function ErrorStatistics({ errorStats = [], usersByProdi = {} }) 
           </Typography>
         </Box>
         <Stack spacing={2.5}>
-          {errorStats.map((stat, index) => (
+          {!errorStats || errorStats.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" textAlign="center" py={3}>
+              Belum ada data kesalahan
+            </Typography>
+          ) : errorStats.map((stat, index) => (
             <Box key={index}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2" fontWeight="medium">{stat.name}</Typography>
@@ -49,7 +53,11 @@ export default function ErrorStatistics({ errorStats = [], usersByProdi = {} }) 
           <Typography variant="h6" fontWeight="600">Pengguna per Program Studi</Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-end', justifyContent: 'space-around', minHeight: 200 }}>
-          {Object.entries(usersByProdi).map(([prodi, count]) => (
+          {Object.keys(usersByProdi).length === 0 ? (
+            <Typography variant="body2" color="text.secondary" textAlign="center" width="100%" py={3}>
+              Belum ada data pengguna
+            </Typography>
+          ) : Object.entries(usersByProdi).map(([prodi, count]) => (
             <Box 
               key={prodi} 
               onClick={() => navigate(`/admin/history?prodi=${prodi}`)}

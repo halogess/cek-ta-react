@@ -7,8 +7,8 @@
 import mockApiClient from './mockClient';
 
 // Konfigurasi dari environment variables
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+const API_BASE_URL = import.meta.env.MAIN_SERVICE_BASE_URL || 'http://localhost:8000/api';
+const USE_MOCK = import.meta.env.USE_MOCK === 'true';
 
 /**
  * Real API Client - Menggunakan fetch untuk HTTP requests
@@ -31,12 +31,25 @@ const realApiClient = {
       });
     }
     
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Tambahkan Authorization header jika ada token
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    console.log('🚀 API GET:', url.toString(), { params: options.params, headers });
+    
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
+    
+    console.log('✅ Response:', response.status, response.statusText);
+    
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     
     // Return blob untuk file downloads
@@ -50,14 +63,34 @@ const realApiClient = {
    * POST request dengan JSON body
    */
   post: async (endpoint, data) => {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Tambahkan Authorization header jika ada token
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    console.log('🚀 API POST:', `${API_BASE_URL}${endpoint}`, { data, headers });
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    
+    console.log('✅ Response:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      error.data = errorData;
+      throw error;
+    }
+    
     return response.json();
   },
 
@@ -65,13 +98,26 @@ const realApiClient = {
    * PUT request untuk update data
    */
   put: async (endpoint, data) => {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Tambahkan Authorization header jika ada token
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    console.log('🚀 API PUT:', `${API_BASE_URL}${endpoint}`, { data, headers });
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(data),
     });
+    
+    console.log('✅ Response:', response.status, response.statusText);
+    
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response.json();
   },
@@ -80,12 +126,25 @@ const realApiClient = {
    * DELETE request untuk hapus data
    */
   delete: async (endpoint) => {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Tambahkan Authorization header jika ada token
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    console.log('🚀 API DELETE:', `${API_BASE_URL}${endpoint}`, { headers });
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
+    
+    console.log('✅ Response:', response.status, response.statusText);
+    
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response.json();
   },
@@ -95,11 +154,29 @@ const realApiClient = {
    * Tidak set Content-Type agar browser set multipart/form-data otomatis
    */
   upload: async (endpoint, formData) => {
+    const headers = {};
+    
+    // Tambahkan Authorization header jika ada token
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    console.log('🚀 API UPLOAD:', `${API_BASE_URL}${endpoint}`, { 
+      file: formData.get('file')?.name,
+      metadata: formData.get('metadata'),
+      headers 
+    });
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
+      headers,
       body: formData, // FormData untuk file upload
     });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    
+    console.log('✅ Response:', response.status, response.statusText);
+    
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status} ${response.json()}`);
     return response.json();
   },
 };

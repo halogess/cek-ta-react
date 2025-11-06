@@ -8,7 +8,7 @@
  * @param {Error} error - Error object dari API call
  * @returns {object} { message, status }
  */
-export const handleApiError = (error) => {
+export const handleApiError = async (error) => {
   // Error dengan response dari server (4xx, 5xx)
   if (error.response) {
     return {
@@ -23,6 +23,22 @@ export const handleApiError = (error) => {
       status: 0,
     };
   } 
+  // Error dari fetch API
+  else if (error.message.includes('HTTP error')) {
+    try {
+      const response = await fetch(error.url);
+      const data = await response.json();
+      return {
+        message: data.message || 'Terjadi kesalahan pada server',
+        status: response.status,
+      };
+    } catch {
+      return {
+        message: error.message || 'Terjadi kesalahan',
+        status: -1,
+      };
+    }
+  }
   // Error lainnya (setup request, dll)
   else {
     return {
