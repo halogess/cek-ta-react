@@ -42,6 +42,8 @@ const History = () => {
     fetchValidations();
   }, [filterStatus, filterProdi, startDate, endDate, sortBy, searchQuery]);
 
+
+
   const fetchValidations = async () => {
     try {
       setLoading(true);

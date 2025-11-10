@@ -21,13 +21,42 @@ export const validationService = {
   },
 
   /**
-   * Get validasi by user ID (untuk mahasiswa)
+   * Get dokumen by user ID (untuk mahasiswa)
    * @param {string} userId - NRP mahasiswa
    * @param {object} params - { status, search, sort }
-   * @returns {Promise} Array of validation objects
+   * @returns {Promise} Array of dokumen objects
    */
-  getValidationsByUser: async (userId, params = {}) => {
-    return apiClient.get(`/validations/user/${userId}`, { params });
+  getDokumenByUser: async (userId, params = {}) => {
+    const backendParams = {};
+    
+    if (params.status && params.status !== 'Semua') {
+      if (params.status === 'Menunggu') {
+        backendParams.status = 'dalam_antrian,diproses';
+      } else {
+        const statusMap = {
+          'Dibatalkan': 'dibatalkan',
+          'Dalam Antrian': 'dalam_antrian',
+          'Diproses': 'diproses',
+          'Lolos': 'lolos',
+          'Tidak Lolos': 'tidak_lolos'
+        };
+        backendParams.status = statusMap[params.status] || params.status.toLowerCase();
+      }
+    }
+    
+    if (params.sort) {
+      backendParams.sort = params.sort === 'terlama' ? 'asc' : 'desc';
+    }
+    
+    if (params.limit) {
+      backendParams.limit = params.limit;
+    }
+    
+    if (params.offset !== undefined) {
+      backendParams.offset = params.offset;
+    }
+    
+    return apiClient.get('/dokumen', { params: backendParams });
   },
 
   /**
@@ -40,16 +69,30 @@ export const validationService = {
   },
 
   /**
+   * Check if user can upload document
+   * @returns {Promise} { can_upload, reason }
+   */
+  canUpload: async () => {
+    return apiClient.get('/dokumen/can-upload');
+  },
+
+  /**
+   * Get document statistics for current user
+   * @returns {Promise} { total, dibatalkan, dalam_antrian, diproses, lolos, tidak_lolos }
+   */
+  getDokumenStats: async () => {
+    return apiClient.get('/dokumen/stats');
+  },
+
+  /**
    * Upload dokumen untuk validasi
    * @param {File} file - File dokumen (.docx)
-   * @param {object} metadata - { judulTA, nrp }
-   * @returns {Promise} { id, status, message }
+   * @returns {Promise} { message, dokumen_id }
    */
-  uploadDocument: async (file, metadata) => {
+  uploadDokumen: async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('metadata', JSON.stringify(metadata));
-    return apiClient.upload('/validations/upload', formData);
+    return apiClient.upload('/dokumen', formData);
   },
 
   /**
@@ -96,12 +139,12 @@ export const validationService = {
   },
 
   /**
-   * Cancel validasi yang sedang dalam antrian
-   * @param {number} id - Validation ID
+   * Cancel dokumen yang sedang dalam antrian
+   * @param {number} id - Dokumen ID
    * @returns {Promise} { message }
    */
-  cancelValidation: async (id) => {
-    return apiClient.put(`/validations/${id}/cancel`);
+  cancelDokumen: async (id) => {
+    return apiClient.patch(`/dokumen/${id}/cancel`);
   },
 
   /**

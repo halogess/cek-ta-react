@@ -10,6 +10,7 @@ import StatusBanner from '../../components/mahasiswa/detail/StatusBanner';
 import DocumentPreview from '../../components/mahasiswa/detail/DocumentPreview';
 import Loading from '../../components/shared/ui/Loading';
 import { validationService, handleApiError } from '../../services';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 
 export default function DetailValidation() {
@@ -25,6 +26,7 @@ export default function DetailValidation() {
   const [documentStructure, setDocumentStructure] = useState([]);
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { subscribe } = useWebSocket();
   const documentStatus = validation?.status || 'Selesai';
   const isPassedValidation = validation?.isPassedValidation || false;
   const queuePosition = validation?.queuePosition || 0;
@@ -37,6 +39,39 @@ export default function DetailValidation() {
     window.scrollTo(0, 0);
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo, id]);
+
+  useEffect(() => {
+    const unsubscribeStatus = subscribe('validation_status', (data) => {
+      if (data.dokumen_id === parseInt(id)) {
+        console.log('📨 Status changed:', data);
+        const statusMap = {
+          'dalam_antrian': 'Dalam Antrian',
+          'diproses': 'Diproses',
+          'lolos': 'Lolos',
+          'tidak_lolos': 'Tidak Lolos'
+        };
+        setValidation(prev => ({ ...prev, status: statusMap[data.status] || data.status }));
+      }
+    });
+
+    const unsubscribeQueue = subscribe('queue_update', (data) => {
+      console.log('📨 Queue position changed:', data);
+      setValidation(prev => ({ ...prev, queuePosition: data.position }));
+    });
+
+    const unsubscribeComplete = subscribe('validation_complete', (data) => {
+      if (data.dokumen_id === parseInt(id)) {
+        console.log('📨 Dokumen cancelled or completed:', data);
+        fetchValidation();
+      }
+    });
+
+    return () => {
+      unsubscribeStatus();
+      unsubscribeQueue();
+      unsubscribeComplete();
+    };
+  }, [subscribe, id]);
 
   const fetchValidation = async () => {
     try {

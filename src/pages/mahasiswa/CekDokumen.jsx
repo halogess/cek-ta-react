@@ -12,6 +12,7 @@ import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 import CekDokumenDialog from '../../components/mahasiswa/upload/CekDokumenDialog';
 import { validationService, handleApiError } from '../../services';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 export default function Upload() {
   const { setHeaderInfo } = useHeader();
@@ -21,10 +22,8 @@ export default function Upload() {
   const statusFromUrl = searchParams.get('status') || 'Semua';
   const [filterStatus, setFilterStatus] = useState(statusFromUrl);
   const [sortBy, setSortBy] = useState('terbaru');
-  const [searchQuery, setSearchQuery] = useState('');
   const [tempFilterStatus, setTempFilterStatus] = useState(statusFromUrl);
   const [tempSortBy, setTempSortBy] = useState('terbaru');
-  const [tempSearchQuery, setTempSearchQuery] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const createFromUrl = searchParams.get('create') === 'true';
@@ -35,13 +34,36 @@ export default function Upload() {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [validationHistoryData, setValidationHistoryData] = useState([]);
+  const [totalData, setTotalData] = useState(0);
   const [loading, setLoading] = useState(false);
   const [hasQueuedDoc, setHasQueuedDoc] = useState(false);
+  const [canUpload, setCanUpload] = useState(true);
+  const { subscribe } = useWebSocket();
 
   useEffect(() => {
     setHeaderInfo({ title: 'Cek Dokumen' });
+    checkCanUpload();
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
+
+  useEffect(() => {
+    if (openCreateDialog) {
+      checkCanUpload();
+    }
+  }, [openCreateDialog]);
+
+  const checkCanUpload = async () => {
+    try {
+      const result = await validationService.canUpload();
+      console.log('🔍 CekDokumen - Can upload result:', result);
+      console.log('🔍 CekDokumen - Setting canUpload to:', result.can_upload);
+      setCanUpload(result.can_upload);
+      console.log('🔍 CekDokumen - canUpload state after set:', result.can_upload);
+    } catch (error) {
+      console.error('❌ Can upload error:', error);
+      handleApiError(error);
+    }
+  };
 
   useEffect(() => {
     if (createFromUrl) {
@@ -54,12 +76,34 @@ export default function Upload() {
       setLoading(true);
       const params = {
         status: filterStatus === 'Semua' ? undefined : filterStatus,
-        search: searchQuery || undefined,
-        sort: sortBy
+        sort: sortBy,
+        limit: rowsPerPage,
+        offset: (page - 1) * rowsPerPage
       };
-      const data = await validationService.getValidationsByUser(user, params);
-      setValidationHistoryData(data);
-      setHasQueuedDoc(data.some(v => v.status === 'Dalam Antrian' || v.status === 'Diproses'));
+      console.log('📋 Fetching validations with params:', params);
+      const response = await validationService.getDokumenByUser(user, params);
+      console.log('📋 Response received:', response);
+      
+      // Transform backend response to frontend format
+      const transformedData = response.data.map(item => ({
+        id: item.id,
+        filename: item.filename,
+        date: new Date(item.tanggal_upload).toLocaleDateString('id-ID'),
+        size: `${(item.ukuran_file / (1024 * 1024)).toFixed(1)} MB`,
+        status: {
+          'dibatalkan': 'Dibatalkan',
+          'dalam_antrian': 'Dalam Antrian',
+          'diproses': 'Diproses',
+          'lolos': 'Lolos',
+          'tidak_lolos': 'Tidak Lolos'
+        }[item.status] || item.status,
+        errorCount: item.jumlah_kesalahan,
+        isPassedValidation: item.status === 'lolos'
+      }));
+      
+      setValidationHistoryData(transformedData);
+      setTotalData(response.total);
+      setHasQueuedDoc(transformedData.some(v => v.status === 'Dalam Antrian' || v.status === 'Diproses'));
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -74,22 +118,56 @@ export default function Upload() {
 
   useEffect(() => {
     if (user) fetchValidations();
-  }, [user, filterStatus, sortBy, searchQuery]);
+  }, [user, filterStatus, sortBy, page, rowsPerPage]);
+
+  useEffect(() => {
+    console.log('🔌 CekDokumen: Setting up WebSocket listeners');
+    
+    const unsubscribeComplete = subscribe('validation_complete', (data) => {
+      console.log('📨 CekDokumen: Validation complete', data);
+      fetchValidations();
+      checkCanUpload();
+    });
+
+    const unsubscribeStatus = subscribe('validation_status', (data) => {
+      console.log('📨 CekDokumen: Status changed', data);
+      const statusMap = {
+        'dalam_antrian': 'Dalam Antrian',
+        'diproses': 'Diproses',
+        'lolos': 'Lolos',
+        'tidak_lolos': 'Tidak Lolos'
+      };
+      
+      setValidationHistoryData(prev => 
+        prev.map(item => 
+          item.id === data.dokumen_id 
+            ? { ...item, status: statusMap[data.status] || data.status }
+            : item
+        )
+      );
+      
+      // Update canUpload setiap ada perubahan status
+      checkCanUpload();
+    });
+
+    return () => {
+      console.log('🔌 CekDokumen: Cleaning up WebSocket listeners');
+      unsubscribeComplete();
+      unsubscribeStatus();
+    };
+  }, [subscribe]);
 
   const handleApplyFilter = () => {
     setFilterStatus(tempFilterStatus);
     setSortBy(tempSortBy);
-    setSearchQuery(tempSearchQuery);
     setPage(1);
   };
 
   const handleReset = () => {
     setFilterStatus('Semua');
     setSortBy('terbaru');
-    setSearchQuery('');
     setTempFilterStatus('Semua');
     setTempSortBy('terbaru');
-    setTempSearchQuery('');
     setPage(1);
   };
 
@@ -101,11 +179,12 @@ export default function Upload() {
   const handleConfirmCancel = async () => {
     try {
       const item = validationHistoryData.find(v => v.filename === selectedDoc);
-      await validationService.cancelValidation(item.id);
+      await validationService.cancelDokumen(item.id);
       setOpenDialog(false);
       setSelectedDoc(null);
       setShowCancelSuccess(true);
-      fetchValidations();
+      await checkCanUpload();
+      await fetchValidations();
     } catch (error) {
       handleApiError(error);
     }
@@ -117,18 +196,20 @@ export default function Upload() {
 
   const handleCreateSubmit = async (file) => {
     try {
-      await validationService.uploadDocument(file);
+      const result = await validationService.uploadDokumen(file);
       setShowUploadSuccess(true);
+      setOpenCreateDialog(false);
+      checkCanUpload();
       fetchValidations();
+      return result;
     } catch (error) {
-      handleApiError(error);
+      throw error;
     }
   };
 
-  const totalPages = Math.ceil(validationHistoryData.length / rowsPerPage);
+  const totalPages = Math.ceil(totalData / rowsPerPage);
   const startIndex = (page - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedData = validationHistoryData.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + rowsPerPage, totalData);
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -157,14 +238,13 @@ export default function Upload() {
             startIcon={<Add />} 
             onClick={() => setOpenCreateDialog(true)}
             size="small"
+            disabled={!canUpload}
           >
             Cek Dokumen Baru
           </Button>
         </Box>
 
         <FilterBar
-          searchQuery={tempSearchQuery}
-          onSearchChange={setTempSearchQuery}
           filterStatus={tempFilterStatus}
           onFilterChange={setTempFilterStatus}
           sortBy={tempSortBy}
@@ -176,13 +256,13 @@ export default function Upload() {
         <DataInfo
           startIndex={startIndex}
           endIndex={endIndex}
-          totalData={validationHistoryData.length}
+          totalData={totalData}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleRowsPerPageChange}
         />
 
         <HistoryList
-          data={paginatedData}
+          data={validationHistoryData}
           onDetail={(id) => navigate(`/mahasiswa/detail/${id}`)}
           onDownload={handleDownloadCertificate}
           onCancel={handleCancelClick}
@@ -202,12 +282,14 @@ export default function Upload() {
         )}
       </Paper>
 
-      <CekDokumenDialog
-        open={openCreateDialog}
-        onClose={() => setOpenCreateDialog(false)}
-        onSubmit={handleCreateSubmit}
-        hasQueuedDoc={hasQueuedDoc}
-      />
+      {openCreateDialog && (
+        <CekDokumenDialog
+          open={openCreateDialog}
+          onClose={() => setOpenCreateDialog(false)}
+          onSubmit={handleCreateSubmit}
+          canUpload={canUpload}
+        />
+      )}
 
       <ConfirmDialog
         open={openDialog}

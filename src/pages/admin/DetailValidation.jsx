@@ -9,6 +9,7 @@ import { useHeader } from '../../context/HeaderContext';
 import ValidationSummary from '../../components/mahasiswa/validation/ValidationSummary';
 import ErrorListPanel from '../../components/mahasiswa/detail/ErrorListPanel';
 import { validationService, handleApiError } from '../../services';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 
 const DetailValidation = () => {
@@ -22,6 +23,7 @@ const DetailValidation = () => {
   const [documentStructure, setDocumentStructure] = useState([]);
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { subscribe } = useWebSocket();
   const isPassedValidation = validation?.isPassedValidation || false;
   const documentStatus = validation?.status || '';
   const hasValidationData = validation?.errorCount !== null && validation?.skor !== null;
@@ -32,6 +34,33 @@ const DetailValidation = () => {
     window.scrollTo(0, 0);
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo, id]);
+
+  useEffect(() => {
+    const unsubscribeStatus = subscribe('validation_status', (data) => {
+      if (data.dokumen_id === parseInt(id)) {
+        console.log('📨 Admin: Status changed');
+        const statusMap = {
+          'dalam_antrian': 'Dalam Antrian',
+          'diproses': 'Diproses',
+          'lolos': 'Lolos',
+          'tidak_lolos': 'Tidak Lolos'
+        };
+        setValidation(prev => ({ ...prev, status: statusMap[data.status] || data.status }));
+      }
+    });
+
+    const unsubscribeComplete = subscribe('validation_complete', (data) => {
+      if (data.dokumen_id === parseInt(id)) {
+        console.log('📨 Admin: Validation complete');
+        fetchValidation();
+      }
+    });
+
+    return () => {
+      unsubscribeStatus();
+      unsubscribeComplete();
+    };
+  }, [subscribe, id]);
 
   const fetchValidation = async () => {
     try {

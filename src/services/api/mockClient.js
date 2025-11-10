@@ -36,6 +36,20 @@ const mockApiClient = {
       return validationController.getBookValidationsByUser(userId, options.params);
     }
     
+    if (endpoint === '/dokumen/can-upload') {
+      const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+      return validationController.canUpload(userData.username);
+    }
+    
+    if (endpoint === '/dokumen/stats') {
+      const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+      return dashboardController.getDocumentStats(userData.username);
+    }
+    
+    if (endpoint === '/dokumen') {
+      return validationController.getValidationsByUser(null, options.params);
+    }
+    
     if (endpoint.startsWith('/validations/user/')) {
       const userId = endpoint.split('/').pop();
       return validationController.getValidationsByUser(userId, options.params);
@@ -145,6 +159,10 @@ const mockApiClient = {
       return authController.logout();
     }
     
+    if (endpoint === '/auth/refresh') {
+      return authController.refreshToken();
+    }
+    
     throw new Error('Endpoint not found');
   },
 
@@ -181,12 +199,27 @@ const mockApiClient = {
     return templateController.deleteTemplate(parseInt(endpoint.split('/')[2]));
   },
 
+  patch: async (endpoint, data) => {
+    console.log('🔵 Mock PATCH:', endpoint, data);
+    await delay();
+    
+    if (endpoint.includes('/cancel')) {
+      return validationController.cancelValidation(parseInt(endpoint.split('/')[2]));
+    }
+    
+    throw new Error('Endpoint not found');
+  },
+
   upload: async (endpoint, formData) => {
     console.log('🔵 Mock UPLOAD:', endpoint, {
       file: formData.get('file')?.name,
       metadata: formData.get('metadata'),
     });
     await delay(1000);
+    
+    if (endpoint === '/dokumen') {
+      return validationController.uploadDocument(formData.get('file'));
+    }
     
     if (endpoint === '/validations/upload') {
       return validationController.uploadDocument(formData.get('file'), JSON.parse(formData.get('metadata')));

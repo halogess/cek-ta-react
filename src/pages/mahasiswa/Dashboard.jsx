@@ -20,6 +20,7 @@ import StatsCards from '../../components/mahasiswa/dashboard/StatsCards';
 import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 import { validationService, dashboardService, handleApiError } from '../../services';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 export default function MahasiswaDashboard() {
   const { setHeaderInfo } = useHeader();
@@ -35,13 +36,15 @@ export default function MahasiswaDashboard() {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCancelSuccess, setShowCancelSuccess] = useState(false);
+  const [canUpload, setCanUpload] = useState(true);
+  const { subscribe } = useWebSocket();
   
   // Stats dari backend (dihitung di fetchValidations)
   const [dokumenStats, setDokumenStats] = useState({ total: 0, waiting: 0, passed: 0, needsFix: 0, cancelled: 0 });
   const [bukuStats, setBukuStats] = useState({ total: 0, waiting: 0, passed: 0, needsFix: 0, cancelled: 0 });
   
   // Check if has queued doc/book
-  const hasQueuedDoc = dokumenData.some(v => v.status === 'Dalam Antrian' || v.status === 'Diproses');
+  const hasQueuedDoc = !canUpload;
   const hasQueuedBook = bukuData.some(v => v.status === 'Dalam Antrian' || v.status === 'Diproses');
 
   // Handler untuk buka dialog konfirmasi cancel
@@ -55,11 +58,12 @@ export default function MahasiswaDashboard() {
     try {
       const allData = [...dokumenData, ...bukuData];
       const item = allData.find(v => v.filename === selectedDoc);
-      await validationService.cancelValidation(item.id);
+      await validationService.cancelDokumen(item.id);
       setOpenDialog(false);
       setSelectedDoc(null);
       setShowCancelSuccess(true);
-      fetchValidations(); // Refresh data
+      await checkCanUpload();
+      await fetchValidations(); // Refresh data
     } catch (error) {
       handleApiError(error);
     }
@@ -73,20 +77,64 @@ export default function MahasiswaDashboard() {
   // Set header title dan fetch data saat mount
   useEffect(() => {
     setHeaderInfo({ title: 'Dashboard' });
+    checkCanUpload();
     fetchValidations();
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo, user]);
+
+  useEffect(() => {
+    const unsubscribe = subscribe('validation_complete', (data) => {
+      console.log('📨 Dashboard: Validation complete');
+      fetchValidations();
+      checkCanUpload();
+    });
+
+    return unsubscribe;
+  }, [subscribe]);
+
+  const checkCanUpload = async () => {
+    try {
+      const result = await validationService.canUpload();
+      console.log('🔍 Can upload result:', result);
+      setCanUpload(result.can_upload);
+    } catch (error) {
+      console.error('❌ Can upload error:', error);
+      handleApiError(error);
+    }
+  };
 
   // Fetch validasi by user dari API
   const fetchValidations = async () => {
     try {
       setLoading(true);
-      const data = await dashboardService.getMahasiswaDashboard(user);
-      setDokumenData(data.dokumen.history);
-      setBukuData(data.buku.history);
-      setDokumenStats(data.dokumen.stats);
-      setBukuStats(data.buku.stats);
-      setJudulBuku(data.judulBuku || '');
+      const stats = await validationService.getDokumenStats();
+      
+      // Transform backend format to frontend format
+      setDokumenStats({
+        total: stats.total,
+        waiting: stats.dalam_antrian + stats.diproses,
+        passed: stats.lolos,
+        needsFix: stats.tidak_lolos,
+        cancelled: stats.dibatalkan
+      });
+      
+      // Fetch 3 riwayat terbaru
+      const history = await validationService.getDokumenByUser(user, { limit: 3, sort: 'desc' });
+      
+      // Transform backend format to frontend format
+      const transformedData = (history.data || []).map(item => ({
+        id: item.id,
+        filename: item.filename,
+        date: item.tanggal_upload,
+        size: `${(item.ukuran_file / (1024 * 1024)).toFixed(1)} MB`,
+        status: item.status === 'dalam_antrian' ? 'Dalam Antrian' : 
+                item.status === 'diproses' ? 'Diproses' :
+                item.status === 'lolos' ? 'Lolos' :
+                item.status === 'tidak_lolos' ? 'Tidak Lolos' : 'Dibatalkan',
+        errorCount: item.jumlah_kesalahan
+      }));
+      
+      setDokumenData(transformedData);
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -104,9 +152,9 @@ export default function MahasiswaDashboard() {
     onCancel: handleCancelClick,
     onDetail: (id) => navigate(`/mahasiswa/detail/${id}`),
     onDownload: handleDownloadCertificate,
-    onViewMore: () => navigate('/mahasiswa/upload'),
-    onCreate: () => navigate('/mahasiswa/upload?create=true'),
-    onNavigate: (status) => navigate(`/mahasiswa/upload?status=${status}`)
+    onViewMore: () => navigate('/mahasiswa/dokumen'),
+    onCreate: () => navigate('/mahasiswa/dokumen?create=true'),
+    onNavigate: (status) => navigate(`/mahasiswa/dokumen?status=${status}`)
   });
 
   const bukuSections = StatsCards({
@@ -117,9 +165,9 @@ export default function MahasiswaDashboard() {
     onCancel: handleCancelClick,
     onDetail: (id) => navigate(`/mahasiswa/detail/${id}`),
     onDownload: handleDownloadCertificate,
-    onViewMore: () => navigate('/mahasiswa/upload-buku'),
-    onCreate: () => navigate('/mahasiswa/upload-buku?create=true'),
-    onNavigate: (status) => navigate(`/mahasiswa/upload-buku?status=${status}`)
+    onViewMore: () => navigate('/mahasiswa/buku'),
+    onCreate: () => navigate('/mahasiswa/buku?create=true'),
+    onNavigate: (status) => navigate(`/mahasiswa/buku?status=${status}`)
   });
 
   return (

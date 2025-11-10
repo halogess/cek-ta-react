@@ -27,22 +27,24 @@ export default function FilterBar({
 }) {
   return (
     <Box>
-      {/* Row 1: Search */}
-      <TextField
-        placeholder={isAdminView ? "Cari nama atau NRP..." : "Cari nama file..."}
-        size="small"
-        value={searchQuery}
-        onChange={(e) => onSearchChange(e.target.value)}
-        fullWidth
-        sx={{ mb: 2 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchOutlined />
-            </InputAdornment>
-          ),
-        }}
-      />
+      {/* Row 1: Search (only for admin) */}
+      {(isAdminView || searchQuery !== undefined) && (
+        <TextField
+          placeholder={isAdminView ? "Cari nama atau NRP..." : "Cari nama file..."}
+          size="small"
+          value={searchQuery || ''}
+          onChange={(e) => onSearchChange?.(e.target.value)}
+          fullWidth
+          sx={{ mb: 2 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchOutlined />
+              </InputAdornment>
+            ),
+          }}
+        />
+      )}
 
       {/* Row 2: Filters & Actions */}
       <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -108,7 +110,6 @@ export default function FilterBar({
           >
             <MenuItem value="terbaru">Terbaru</MenuItem>
             <MenuItem value="terlama">Terlama</MenuItem>
-            {!isAdminView && <MenuItem value="nama">Nama File</MenuItem>}
           </Select>
         </FormControl>
 

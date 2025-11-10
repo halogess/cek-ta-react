@@ -60,8 +60,8 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <MahasiswaDashboard /> }, // Dashboard mahasiswa
-      { path: 'upload', element: <CekDokumen /> }, // Cek dokumen
-      { path: 'upload-buku', element: <ValidasiBukuLengkap /> }, // Validasi buku lengkap
+      { path: 'dokumen', element: <CekDokumen /> }, // Cek dokumen
+      { path: 'buku', element: <ValidasiBukuLengkap /> }, // Validasi buku lengkap
       { path: 'template', element: <MahasiswaTemplatePanduan /> }, // Template & panduan
       { path: 'detail/:id', element: <DetailValidation /> } // Detail validasi
     ],

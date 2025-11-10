@@ -42,16 +42,7 @@ export const userSlice = createSlice({
       state.user = action.payload.user;
       state.nama = action.payload.nama;
       state.role = action.payload.role;
-      // Persist ke localStorage
-      if (action.payload.accessToken) {
-        localStorage.setItem('access_token', action.payload.accessToken);
-        console.log('✅ access_token saved to localStorage');
-      }
-      if (action.payload.refreshToken) {
-        localStorage.setItem('refresh_token', action.payload.refreshToken);
-        console.log('✅ refresh_token saved to localStorage');
-      }
-      localStorage.setItem('auth_token', action.payload.token || action.payload.accessToken);
+      // Token sudah disimpan di authService.login(), hanya simpan user_data
       localStorage.setItem('user_data', JSON.stringify({ 
         username: action.payload.user, 
         nama: action.payload.nama,

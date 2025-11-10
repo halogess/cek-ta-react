@@ -17,8 +17,8 @@ import {
 // Menu untuk mahasiswa
 export const mahasiswaMenuItems = [
   { text: 'Dashboard', icon: React.createElement(HomeOutlined), path: '/mahasiswa' },
-  { text: 'Cek Dokumen', icon: React.createElement(UploadOutlined), path: '/mahasiswa/upload' },
-  { text: 'Validasi Buku Lengkap', icon: React.createElement(MenuBookOutlined), path: '/mahasiswa/upload-buku' },
+  { text: 'Cek Dokumen', icon: React.createElement(UploadOutlined), path: '/mahasiswa/dokumen' },
+  { text: 'Validasi Buku Lengkap', icon: React.createElement(MenuBookOutlined), path: '/mahasiswa/buku' },
   { text: 'Template & Panduan', icon: React.createElement(DescriptionOutlined), path: '/mahasiswa/template' },
 ];
 

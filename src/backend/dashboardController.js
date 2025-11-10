@@ -27,6 +27,22 @@ export const dashboardController = {
   },
 
   /**
+   * Get document stats (called by /dokumen/stats endpoint)
+   */
+  getDocumentStats: (userId) => {
+    const dokumenData = mockValidations.filter(v => v.nrp === userId);
+    
+    return {
+      total: dokumenData.length,
+      dibatalkan: dokumenData.filter(v => v.status === 'Dibatalkan').length,
+      dalam_antrian: dokumenData.filter(v => v.status === 'Dalam Antrian').length,
+      diproses: dokumenData.filter(v => v.status === 'Diproses').length,
+      lolos: dokumenData.filter(v => v.status === 'Lolos').length,
+      tidak_lolos: dokumenData.filter(v => v.status === 'Tidak Lolos').length
+    };
+  },
+
+  /**
    * Get mahasiswa dashboard dengan stats dan history
    */
   getMahasiswaDashboard: (userId) => {

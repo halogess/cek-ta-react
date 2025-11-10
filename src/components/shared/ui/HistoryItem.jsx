@@ -94,13 +94,6 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
             </IconButton>
           </Tooltip>
         )}
-        {status === 'Lolos' && isPassedValidation && (
-          <Tooltip title="Download Sertifikat" arrow>
-            <IconButton size="small" color="primary" onClick={(e) => { e.stopPropagation(); onDownload(); }}>
-              <DownloadOutlined />
-            </IconButton>
-          </Tooltip>
-        )}
       </Box>
     </Box>
   </Paper>
