@@ -37,6 +37,7 @@ export default function MahasiswaDashboard() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCancelSuccess, setShowCancelSuccess] = useState(false);
   const [canUpload, setCanUpload] = useState(true);
+  const [canUploadBook, setCanUploadBook] = useState(true);
   const { subscribe } = useWebSocket();
   
   // Stats dari backend (dihitung di fetchValidations)
@@ -45,7 +46,7 @@ export default function MahasiswaDashboard() {
   
   // Check if has queued doc/book
   const hasQueuedDoc = !canUpload;
-  const hasQueuedBook = bukuData.some(v => v.status === 'Dalam Antrian' || v.status === 'Diproses');
+  const hasQueuedBook = !canUploadBook;
 
   // Handler untuk buka dialog konfirmasi cancel
   const handleCancelClick = (filename) => {
@@ -78,6 +79,7 @@ export default function MahasiswaDashboard() {
   useEffect(() => {
     setHeaderInfo({ title: 'Dashboard' });
     checkCanUpload();
+    checkCanUploadBook();
     fetchValidations();
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo, user]);
@@ -87,6 +89,7 @@ export default function MahasiswaDashboard() {
       console.log('📨 Dashboard: Validation complete');
       fetchValidations();
       checkCanUpload();
+      checkCanUploadBook();
     });
 
     return unsubscribe;
@@ -95,10 +98,19 @@ export default function MahasiswaDashboard() {
   const checkCanUpload = async () => {
     try {
       const result = await validationService.canUpload();
-      console.log('🔍 Can upload result:', result);
       setCanUpload(result.can_upload);
     } catch (error) {
       console.error('❌ Can upload error:', error);
+      handleApiError(error);
+    }
+  };
+
+  const checkCanUploadBook = async () => {
+    try {
+      const result = await validationService.canUploadBook();
+      setCanUploadBook(result.can_upload);
+    } catch (error) {
+      console.error('❌ Can upload book error:', error);
       handleApiError(error);
     }
   };
@@ -135,6 +147,45 @@ export default function MahasiswaDashboard() {
       }));
       
       setDokumenData(transformedData);
+
+      // Fetch buku stats
+      try {
+        const bukuStatsData = await validationService.getBukuStats();
+        setBukuStats({
+          total: bukuStatsData.total,
+          waiting: bukuStatsData.dalam_antrian + bukuStatsData.diproses,
+          passed: bukuStatsData.lolos,
+          needsFix: bukuStatsData.tidak_lolos,
+          cancelled: 0
+        });
+      } catch (err) {
+        console.error('Error fetching buku stats:', err);
+      }
+
+      // Fetch buku history
+      try {
+        const bukuHistory = await validationService.getBookValidationsByUser(user, { limit: 3, sort: 'desc' });
+        const transformedBuku = (bukuHistory.data || []).map(item => ({
+          id: item.id,
+          filename: `BK-${item.id}`,
+          judulBuku: item.judul,
+          date: item.tanggal_upload,
+          numChapters: item.jumlah_bab,
+          status: item.status === 'dalam_antrian' ? 'Dalam Antrian' : 
+                  item.status === 'diproses' ? 'Diproses' :
+                  item.status === 'lolos' ? 'Lolos' :
+                  item.status === 'tidak_lolos' ? 'Tidak Lolos' : 'Dibatalkan',
+          errorCount: item.jumlah_kesalahan,
+          skor: item.skor
+        }));
+        setBukuData(transformedBuku);
+
+        if (transformedBuku.length > 0) {
+          setJudulBuku(transformedBuku[0].judulBuku);
+        }
+      } catch (err) {
+        console.error('Error fetching buku history:', err);
+      }
     } catch (error) {
       handleApiError(error);
     } finally {

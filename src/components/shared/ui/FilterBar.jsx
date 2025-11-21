@@ -1,12 +1,7 @@
 import { Box, TextField, FormControl, InputLabel, Select, MenuItem, Button, InputAdornment } from '@mui/material';
 import { SearchOutlined, RestartAlt, FilterAltOutlined } from '@mui/icons-material';
 
-const prodiOptions = [
-  { value: 'Semua', label: 'Semua' },
-  { value: 'Teknik Informatika', label: 'Teknik Informatika' },
-  { value: 'Sistem Informasi', label: 'Sistem Informasi' },
-  { value: 'Teknik Komputer', label: 'Teknik Komputer' }
-];
+
 
 export default function FilterBar({ 
   searchQuery, 
@@ -23,8 +18,13 @@ export default function FilterBar({
   onStartDateChange,
   endDate,
   onEndDateChange,
-  isAdminView = false
+  isAdminView = false,
+  jurusanList = []
 }) {
+  const prodiOptions = [
+    { value: 'Semua', label: 'Semua' },
+    ...jurusanList.map(j => ({ value: j.kode, label: j.nama }))
+  ];
   return (
     <Box>
       {/* Row 1: Search (only for admin) */}
@@ -67,11 +67,11 @@ export default function FilterBar({
         {isAdminView && (
           <>
             <FormControl size="small" sx={{ flex: '1 1 150px' }}>
-              <InputLabel id="filter-prodi-label">Prodi</InputLabel>
+              <InputLabel id="filter-prodi-label">Program Studi</InputLabel>
               <Select 
                 labelId="filter-prodi-label"
                 value={filterProdi} 
-                label="Prodi" 
+                label="Program Studi" 
                 onChange={(e) => onFilterProdiChange(e.target.value)}
               >
                 {prodiOptions.map(option => (

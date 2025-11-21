@@ -155,52 +155,143 @@ export const validationController = {
   },
 
   /**
-   * Get book validations by user dengan filtering dan sorting
+   * Get all book validations for admin (API format)
    */
-  getBookValidationsByUser: (userId, params = {}) => {
-    let data = mockBookValidations.filter(v => v.nrp === userId);
+  getAllBookValidationsAPI: (params = {}) => {
+    let data = mockBookValidations;
     
-    if (params.status && params.status !== 'Semua') {
-      if (params.status === 'Menunggu') {
-        data = data.filter(v => v.status === 'Dalam Antrian' || v.status === 'Diproses');
-      } else {
-        data = data.filter(v => v.status === params.status);
-      }
+    const statusMap = {
+      'Dibatalkan': 'dibatalkan',
+      'Dalam Antrian': 'dalam_antrian',
+      'Diproses': 'diproses',
+      'Lolos': 'lolos',
+      'Tidak Lolos': 'tidak_lolos'
+    };
+    
+    if (params.status) {
+      const statuses = params.status.split(',');
+      data = data.filter(v => statuses.includes(statusMap[v.status]));
     }
     
-    if (params.search) {
-      const searchLower = params.search.toLowerCase();
-      data = data.filter(v => 
-        v.judulBuku?.toLowerCase().includes(searchLower) ||
-        v.filename?.toLowerCase().includes(searchLower)
-      );
-    }
-    
-    if (params.sort === 'terbaru') {
+    const sortOrder = params.sort || 'desc';
+    if (sortOrder === 'desc') {
       data.sort((a, b) => new Date(b.date) - new Date(a.date));
-    } else if (params.sort === 'terlama') {
+    } else {
       data.sort((a, b) => new Date(a.date) - new Date(b.date));
     }
     
-    // Sort: Diproses first, then Dalam Antrian, then others
-    data.sort((a, b) => {
-      if (a.status === 'Diproses' && b.status !== 'Diproses') return -1;
-      if (a.status !== 'Diproses' && b.status === 'Diproses') return 1;
-      if (a.status === 'Dalam Antrian' && b.status !== 'Dalam Antrian' && b.status !== 'Diproses') return -1;
-      if (a.status !== 'Dalam Antrian' && b.status === 'Dalam Antrian' && a.status !== 'Diproses') return 1;
-      return 0;
-    });
+    const total = data.length;
+    const limit = params.limit || 10;
+    const offset = params.offset || 0;
+    data = data.slice(offset, offset + limit);
     
-    return data;
+    return {
+      data: data.map(v => ({
+        id: v.id,
+        judul: v.judulBuku,
+        tanggal_upload: v.date,
+        jumlah_bab: v.numChapters,
+        status: statusMap[v.status],
+        skor: v.skor,
+        jumlah_kesalahan: v.errorCount,
+        nrp: v.nrp,
+        nama: v.nama,
+        jurusan: v.jurusan
+      })),
+      total,
+      limit,
+      offset
+    };
   },
 
   /**
-   * Get judul buku by user (from latest book validation)
+   * Get book validations by user dengan filtering dan sorting (API format)
    */
-  getJudulBukuByUser: (userId) => {
-    const bookValidations = mockBookValidations.filter(v => v.nrp === userId);
-    const latestBook = bookValidations.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-    return { judulBuku: latestBook?.judulBuku || '' };
+  getBookValidationsByUserAPI: (userId, params = {}) => {
+    let data = mockBookValidations.filter(v => v.nrp === userId);
+    
+    const statusMap = {
+      'Dibatalkan': 'dibatalkan',
+      'Dalam Antrian': 'dalam_antrian',
+      'Diproses': 'diproses',
+      'Lolos': 'lolos',
+      'Tidak Lolos': 'tidak_lolos'
+    };
+    
+    if (params.status) {
+      const statuses = params.status.split(',');
+      data = data.filter(v => statuses.includes(statusMap[v.status]));
+    }
+    
+    const sortOrder = params.sort || 'desc';
+    if (sortOrder === 'desc') {
+      data.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } else {
+      data.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+    
+    const total = data.length;
+    const limit = params.limit || 10;
+    const offset = params.offset || 0;
+    data = data.slice(offset, offset + limit);
+    
+    return {
+      data: data.map(v => ({
+        id: v.id,
+        judul: v.judulBuku,
+        tanggal_upload: v.date,
+        jumlah_bab: v.numChapters,
+        status: statusMap[v.status],
+        skor: v.skor,
+        jumlah_kesalahan: v.errorCount
+      })),
+      total,
+      limit,
+      offset
+    };
+  },
+
+  /**
+   * Get buku stats by user
+   */
+  getBukuStats: (userId) => {
+    const userBooks = mockBookValidations.filter(v => v.nrp === userId);
+    return {
+      total: userBooks.filter(v => v.status !== 'Dibatalkan').length,
+      dalam_antrian: userBooks.filter(v => v.status === 'Dalam Antrian').length,
+      diproses: userBooks.filter(v => v.status === 'Diproses').length,
+      selesai_convert: 0,
+      lolos: userBooks.filter(v => v.status === 'Lolos').length,
+      tidak_lolos: userBooks.filter(v => v.status === 'Tidak Lolos').length
+    };
+  },
+
+  /**
+   * Get buku stats for admin (all books)
+   */
+  getBukuStatsAdmin: () => {
+    const dalamAntrian = mockBookValidations.filter(v => v.status === 'Dalam Antrian').length;
+    const diproses = mockBookValidations.filter(v => v.status === 'Diproses').length;
+    const selesaiConvert = 0;
+    
+    return {
+      total: mockBookValidations.filter(v => v.status !== 'Dibatalkan').length,
+      dalam_antrian: dalamAntrian,
+      diproses: diproses,
+      selesai_convert: selesaiConvert,
+      lolos: mockBookValidations.filter(v => v.status === 'Lolos').length,
+      tidak_lolos: mockBookValidations.filter(v => v.status === 'Tidak Lolos').length,
+      menunggu_validasi: dalamAntrian + diproses + selesaiConvert
+    };
+  },
+
+  /**
+   * Check if user can upload book
+   */
+  canUploadBook: (userId) => {
+    const userBooks = mockBookValidations.filter(v => v.nrp === userId);
+    const hasPending = userBooks.some(v => v.status === 'Dalam Antrian' || v.status === 'Diproses');
+    return { can_upload: !hasPending };
   },
 
   /**

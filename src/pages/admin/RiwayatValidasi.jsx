@@ -7,7 +7,7 @@ import FilterBar from '../../components/shared/ui/FilterBar';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 import DataInfo from '../../components/shared/ui/DataInfo';
 import HistoryList from '../../components/shared/ui/HistoryList';
-import { validationService, handleApiError } from '../../services';
+import { validationService, jurusanService, handleApiError } from '../../services';
 
 const History = () => {
   const { setHeaderInfo } = useHeader();
@@ -32,11 +32,22 @@ const History = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [allData, setAllData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [jurusanList, setJurusanList] = useState([]);
 
   useEffect(() => {
     setHeaderInfo({ title: 'Riwayat Validasi Buku Lengkap' });
+    fetchJurusan();
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
+
+  const fetchJurusan = async () => {
+    try {
+      const data = await jurusanService.getAllJurusan();
+      setJurusanList(data);
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
 
   useEffect(() => {
     fetchValidations();
@@ -47,17 +58,74 @@ const History = () => {
   const fetchValidations = async () => {
     try {
       setLoading(true);
-      const params = {
-        status: filterStatus === 'Semua' ? undefined : filterStatus,
-        prodi: filterProdi === 'Semua' ? undefined : filterProdi,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-        search: searchQuery || undefined,
-        sort: sortBy
-      };
-      const data = await validationService.getAllBookValidations(params);
-      setAllData(data);
+      const backendParams = {};
+      
+      if (filterStatus !== 'Semua') {
+        if (filterStatus === 'Menunggu') {
+          backendParams.status = 'dalam_antrian,diproses';
+        } else {
+          const statusMap = {
+            'Dibatalkan': 'dibatalkan',
+            'Dalam Antrian': 'dalam_antrian',
+            'Diproses': 'diproses',
+            'Lolos': 'lolos',
+            'Tidak Lolos': 'tidak_lolos'
+          };
+          backendParams.status = statusMap[filterStatus];
+        }
+      }
+      
+      backendParams.sort = sortBy === 'terlama' ? 'asc' : 'desc';
+      backendParams.limit = 1000;
+      
+      console.log('📋 Fetching buku with params:', backendParams);
+      const result = await validationService.getAllBookValidations(backendParams);
+      console.log('📋 Buku result:', result);
+      
+      let transformedData = (result.data || []).map(item => ({
+        id: item.id,
+        filename: `BK-${item.id}`,
+        judulBuku: item.judul,
+        date: item.tanggal_upload,
+        numChapters: item.jumlah_bab,
+        status: item.status === 'dalam_antrian' ? 'Dalam Antrian' : 
+                item.status === 'diproses' ? 'Diproses' :
+                item.status === 'lolos' ? 'Lolos' :
+                item.status === 'tidak_lolos' ? 'Tidak Lolos' : 'Dibatalkan',
+        errorCount: item.jumlah_kesalahan,
+        skor: item.skor,
+        nrp: item.nrp,
+        nama: item.nama,
+        jurusan: item.jurusan
+      }));
+      
+      if (filterProdi !== 'Semua') {
+        transformedData = transformedData.filter(item => item.jurusan === filterProdi);
+      }
+      
+      if (searchQuery) {
+        transformedData = transformedData.filter(item => 
+          item.nama?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.nrp?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
+      
+      if (startDate) {
+        transformedData = transformedData.filter(item => 
+          new Date(item.date) >= new Date(startDate)
+        );
+      }
+      
+      if (endDate) {
+        transformedData = transformedData.filter(item => 
+          new Date(item.date) <= new Date(endDate + 'T23:59:59')
+        );
+      }
+      
+      console.log('📋 Transformed data:', transformedData);
+      setAllData(transformedData);
     } catch (error) {
+      console.error('❌ Error fetching validations:', error);
       handleApiError(error);
     } finally {
       setLoading(false);
@@ -82,7 +150,6 @@ const History = () => {
     setSortBy(tempSortBy);
     setSearchQuery(tempSearchQuery);
     setPage(1);
-    fetchValidations();
   };
 
   const handleReset = () => {
@@ -99,7 +166,6 @@ const History = () => {
     setTempSortBy('terbaru');
     setTempSearchQuery('');
     setPage(1);
-    fetchValidations();
   };
 
   const handleDownloadCertificate = () => {
@@ -141,6 +207,7 @@ const History = () => {
           onApplyFilter={handleApplyFilter}
           onReset={handleReset}
           isAdminView={true}
+          jurusanList={jurusanList}
         />
       </Paper>
 

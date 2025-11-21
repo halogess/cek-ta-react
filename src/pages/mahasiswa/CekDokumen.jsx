@@ -36,7 +36,6 @@ export default function Upload() {
   const [validationHistoryData, setValidationHistoryData] = useState([]);
   const [totalData, setTotalData] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [hasQueuedDoc, setHasQueuedDoc] = useState(false);
   const [canUpload, setCanUpload] = useState(true);
   const { subscribe } = useWebSocket();
 
@@ -55,12 +54,8 @@ export default function Upload() {
   const checkCanUpload = async () => {
     try {
       const result = await validationService.canUpload();
-      console.log('🔍 CekDokumen - Can upload result:', result);
-      console.log('🔍 CekDokumen - Setting canUpload to:', result.can_upload);
       setCanUpload(result.can_upload);
-      console.log('🔍 CekDokumen - canUpload state after set:', result.can_upload);
     } catch (error) {
-      console.error('❌ Can upload error:', error);
       handleApiError(error);
     }
   };
@@ -80,9 +75,7 @@ export default function Upload() {
         limit: rowsPerPage,
         offset: (page - 1) * rowsPerPage
       };
-      console.log('📋 Fetching validations with params:', params);
       const response = await validationService.getDokumenByUser(user, params);
-      console.log('📋 Response received:', response);
       
       // Transform backend response to frontend format
       const transformedData = response.data.map(item => ({
@@ -103,7 +96,6 @@ export default function Upload() {
       
       setValidationHistoryData(transformedData);
       setTotalData(response.total);
-      setHasQueuedDoc(transformedData.some(v => v.status === 'Dalam Antrian' || v.status === 'Diproses'));
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -121,16 +113,12 @@ export default function Upload() {
   }, [user, filterStatus, sortBy, page, rowsPerPage]);
 
   useEffect(() => {
-    console.log('🔌 CekDokumen: Setting up WebSocket listeners');
-    
     const unsubscribeComplete = subscribe('validation_complete', (data) => {
-      console.log('📨 CekDokumen: Validation complete', data);
       fetchValidations();
       checkCanUpload();
     });
 
     const unsubscribeStatus = subscribe('validation_status', (data) => {
-      console.log('📨 CekDokumen: Status changed', data);
       const statusMap = {
         'dalam_antrian': 'Dalam Antrian',
         'diproses': 'Diproses',
@@ -146,12 +134,10 @@ export default function Upload() {
         )
       );
       
-      // Update canUpload setiap ada perubahan status
       checkCanUpload();
     });
 
     return () => {
-      console.log('🔌 CekDokumen: Cleaning up WebSocket listeners');
       unsubscribeComplete();
       unsubscribeStatus();
     };

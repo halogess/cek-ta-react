@@ -111,7 +111,7 @@ export default function StatsCards({ type, stats, historyData, hasQueued, onCanc
         </Stack>
 
         <Tooltip 
-          title={hasQueued ? `Anda memiliki ${isDokumen ? 'dokumen' : 'buku'} dalam antrian atau sedang diproses` : ''}
+          title={hasQueued ? `Anda memiliki ${isDokumen ? 'dokumen' : 'buku'} dalam antrian` : ''}
           arrow
           placement="top"
         >

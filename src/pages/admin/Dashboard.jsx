@@ -4,7 +4,7 @@ import { useHeader } from '../../context/HeaderContext';
 import StatsCards from '../../components/admin/dashboard/StatsCards';
 import ErrorStatistics from '../../components/admin/dashboard/ErrorStatistics';
 import Loading from '../../components/shared/ui/Loading';
-import { dashboardService } from '../../services';
+import { dashboardService, validationService } from '../../services';
 
 export default function AdminDashboard() {
   const { setHeaderInfo } = useHeader();
@@ -23,20 +23,19 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const statsData = await dashboardService.getAdminStats();
+      const statsData = await validationService.getBukuStatsAdmin();
+      console.log('📊 Buku stats admin:', statsData);
       const errorStatsData = await dashboardService.getErrorStatistics();
-      console.log('📊 Dashboard stats:', statsData);
-      console.log('📊 Error stats:', errorStatsData);
       setStats({
         total: statsData?.total || 0,
-        waiting: statsData?.waiting || 0,
-        passed: statsData?.passed || 0,
-        needsFix: statsData?.needsFix || 0,
-        usersByProdi: statsData?.usersByProdi || {}
+        waiting: statsData?.menunggu_validasi || 0,
+        passed: statsData?.lolos || 0,
+        needsFix: statsData?.tidak_lolos || 0,
+        usersByProdi: {}
       });
       setErrorStats(errorStatsData || []);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('❌ Error fetching dashboard data:', error);
       setStats({ total: 0, waiting: 0, passed: 0, needsFix: 0, usersByProdi: {} });
       setErrorStats([]);
     } finally {

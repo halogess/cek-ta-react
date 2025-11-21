@@ -5,6 +5,7 @@ import { UploadFileOutlined, Close, AttachFile } from '@mui/icons-material';
 export default function ValidasiBukuDialog({ open, onClose, onSubmit, hasQueuedBook, judulBuku }) {
   const [numChapters, setNumChapters] = useState('');
   const [files, setFiles] = useState({});
+  const [customJudul, setCustomJudul] = useState('');
 
   const totalFiles = numChapters ? parseInt(numChapters) + 2 : 0;
   const chapters = numChapters ? parseInt(numChapters) : 0;
@@ -12,11 +13,13 @@ export default function ValidasiBukuDialog({ open, onClose, onSubmit, hasQueuedB
   const handleClose = () => {
     setNumChapters('');
     setFiles({});
+    setCustomJudul('');
     onClose();
   };
 
   const handleSubmit = () => {
-    onSubmit({ files: Object.values(files), judulBuku, numChapters: parseInt(numChapters) });
+    const finalJudul = customJudul || judulBuku;
+    onSubmit({ files: Object.values(files), judulBuku: finalJudul });
     handleClose();
   };
 
@@ -29,7 +32,8 @@ export default function ValidasiBukuDialog({ open, onClose, onSubmit, hasQueuedB
     setFiles({});
   };
 
-  const isDisabled = !numChapters || parseInt(numChapters) < 1 || Object.keys(files).length !== totalFiles || hasQueuedBook;
+  const finalJudul = customJudul || judulBuku;
+  const isDisabled = !finalJudul || !numChapters || parseInt(numChapters) < 1 || Object.keys(files).length !== totalFiles || hasQueuedBook;
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -45,14 +49,18 @@ export default function ValidasiBukuDialog({ open, onClose, onSubmit, hasQueuedB
           {hasQueuedBook && (
             <Alert severity="warning" sx={{ borderRadius: '12px' }}>
               <Typography fontWeight="medium">Tidak dapat memvalidasi buku baru</Typography>
-              <Typography variant="body2">Anda memiliki buku dalam antrian atau sedang diproses. Batalkan validasi buku tersebut terlebih dahulu untuk melanjutkan.</Typography>
+              <Typography variant="body2">Anda memiliki buku dalam antrian. Batalkan validasi buku tersebut terlebih dahulu untuk melanjutkan.</Typography>
             </Alert>
           )}
 
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>Judul Buku TA</Typography>
-            <Typography variant="body1" fontWeight="500">{judulBuku || 'Memuat judul...'}</Typography>
-          </Box>
+          <TextField
+            label="Judul Buku TA"
+            value={customJudul || judulBuku}
+            onChange={(e) => setCustomJudul(e.target.value)}
+            fullWidth
+            disabled={hasQueuedBook}
+            helperText={judulBuku && !customJudul ? 'Menggunakan judul dari validasi sebelumnya' : ''}
+          />
 
           <TextField
             label="Jumlah BAB"

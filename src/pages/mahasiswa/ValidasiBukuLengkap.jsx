@@ -36,13 +36,23 @@ export default function UploadBuku() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [validationHistoryData, setValidationHistoryData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [hasQueuedBook, setHasQueuedBook] = useState(false);
+  const [canUploadBook, setCanUploadBook] = useState(true);
   const [judulBuku, setJudulBuku] = useState('');
 
   useEffect(() => {
     setHeaderInfo({ title: 'Validasi Buku Lengkap' });
+    checkCanUploadBook();
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
+
+  const checkCanUploadBook = async () => {
+    try {
+      const result = await validationService.canUploadBook();
+      setCanUploadBook(result.can_upload);
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
 
   useEffect(() => {
     if (createFromUrl) {
@@ -53,14 +63,46 @@ export default function UploadBuku() {
   const fetchValidations = async () => {
     try {
       setLoading(true);
-      const params = {
-        status: filterStatus === 'Semua' ? undefined : filterStatus,
-        search: searchQuery || undefined,
-        sort: sortBy
-      };
-      const data = await validationService.getBookValidationsByUser(user, params);
-      setValidationHistoryData(data);
-      setHasQueuedBook(data.some(v => v.status === 'Dalam Antrian' || v.status === 'Diproses'));
+      const backendParams = {};
+      
+      if (filterStatus !== 'Semua') {
+        if (filterStatus === 'Menunggu') {
+          backendParams.status = 'dalam_antrian,diproses';
+        } else {
+          const statusMap = {
+            'Dibatalkan': 'dibatalkan',
+            'Dalam Antrian': 'dalam_antrian',
+            'Diproses': 'diproses',
+            'Lolos': 'lolos',
+            'Tidak Lolos': 'tidak_lolos'
+          };
+          backendParams.status = statusMap[filterStatus];
+        }
+      }
+      
+      backendParams.sort = sortBy === 'terlama' ? 'asc' : 'desc';
+      backendParams.limit = 1000;
+      
+      const result = await validationService.getBookValidationsByUser(user, backendParams);
+      const transformedData = (result.data || []).map(item => ({
+        id: item.id,
+        filename: `BK-${item.id}`,
+        judulBuku: item.judul,
+        date: item.tanggal_upload,
+        numChapters: item.jumlah_bab,
+        status: item.status === 'dalam_antrian' ? 'Dalam Antrian' : 
+                item.status === 'diproses' ? 'Diproses' :
+                item.status === 'lolos' ? 'Lolos' :
+                item.status === 'tidak_lolos' ? 'Tidak Lolos' : 'Dibatalkan',
+        errorCount: item.jumlah_kesalahan,
+        skor: item.skor
+      }));
+      
+      setValidationHistoryData(transformedData);
+      
+      if (transformedData.length > 0) {
+        setJudulBuku(transformedData[0].judulBuku);
+      }
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -68,19 +110,9 @@ export default function UploadBuku() {
     }
   };
 
-  const fetchJudulBuku = async () => {
-    try {
-      const result = await validationService.getJudulBukuByUser(user);
-      setJudulBuku(result.judulBuku);
-    } catch (error) {
-      handleApiError(error);
-    }
-  };
-
   useEffect(() => {
     if (user) {
       fetchValidations();
-      fetchJudulBuku();
     }
   }, [user, filterStatus, sortBy, searchQuery]);
 
@@ -118,6 +150,7 @@ export default function UploadBuku() {
       setOpenDialog(false);
       setSelectedDoc(null);
       setShowCancelSuccess(true);
+      checkCanUploadBook();
       fetchValidations();
     } catch (error) {
       handleApiError(error);
@@ -130,8 +163,9 @@ export default function UploadBuku() {
 
   const handleCreateSubmit = async (data) => {
     try {
-      await validationService.uploadBook(data.files, { judulBuku: data.judulBuku, nrp: user, numChapters: data.numChapters });
+      await validationService.uploadBook(data.files, data.judulBuku);
       setShowUploadSuccess(true);
+      checkCanUploadBook();
       fetchValidations();
     } catch (error) {
       handleApiError(error);
@@ -213,7 +247,7 @@ export default function UploadBuku() {
         open={openCreateDialog}
         onClose={() => setOpenCreateDialog(false)}
         onSubmit={handleCreateSubmit}
-        hasQueuedBook={hasQueuedBook}
+        hasQueuedBook={!canUploadBook}
         judulBuku={judulBuku}
       />
 

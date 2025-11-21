@@ -98,44 +98,87 @@ export const validationService = {
   /**
    * Upload buku (multiple files) untuk validasi
    * @param {File[]} files - Array of files
-   * @param {object} metadata - { judulBuku, nrp, numChapters }
-   * @returns {Promise} { id, status, message }
+   * @param {string} judul - Judul buku
+   * @returns {Promise} { message, buku_id }
    */
-  uploadBook: async (files, metadata) => {
+  uploadBook: async (files, judul) => {
     const formData = new FormData();
-    files.forEach((file, index) => {
-      formData.append(`files`, file);
+    files.forEach(file => {
+      formData.append('files', file);
     });
-    formData.append('metadata', JSON.stringify(metadata));
-    return apiClient.upload('/validations/upload-book', formData);
+    formData.append('judul', judul);
+    return apiClient.upload('/buku', formData);
   },
+
+
 
   /**
    * Get book validations by user
    * @param {string} userId - NRP mahasiswa
-   * @param {object} params - { status, search, sort }
-   * @returns {Promise} Array of book validation objects
+   * @param {object} params - { status, search, sort, limit, offset }
+   * @returns {Promise} { data, total, limit, offset }
    */
   getBookValidationsByUser: async (userId, params = {}) => {
-    return apiClient.get(`/validations/books/user/${userId}`, { params });
+    const backendParams = {};
+    
+    if (params.status && params.status !== 'Semua') {
+      if (params.status === 'Menunggu') {
+        backendParams.status = 'dalam_antrian,diproses';
+      } else {
+        const statusMap = {
+          'Dibatalkan': 'dibatalkan',
+          'Dalam Antrian': 'dalam_antrian',
+          'Diproses': 'diproses',
+          'Lolos': 'lolos',
+          'Tidak Lolos': 'tidak_lolos'
+        };
+        backendParams.status = statusMap[params.status] || params.status.toLowerCase();
+      }
+    }
+    
+    if (params.sort) {
+      backendParams.sort = params.sort === 'terlama' ? 'asc' : 'desc';
+    }
+    
+    if (params.limit) backendParams.limit = params.limit;
+    if (params.offset !== undefined) backendParams.offset = params.offset;
+    
+    return apiClient.get('/buku', { params: backendParams });
   },
 
   /**
-   * Get judul buku by user (from latest book validation)
-   * @param {string} userId - NRP mahasiswa
-   * @returns {Promise} { judulBuku }
+   * Get book statistics for current user
+   * @returns {Promise} { total, dalam_antrian, diproses, selesai_convert, lolos, tidak_lolos }
    */
-  getJudulBukuByUser: async (userId) => {
-    return apiClient.get(`/validations/books/user/${userId}/judul`);
+  getBukuStats: async () => {
+    return apiClient.get('/buku/stats');
   },
 
   /**
-   * Get all book validations (untuk admin)
-   * @param {object} params - { status, prodi, startDate, endDate, search, sort }
-   * @returns {Promise} Array of book validation objects
+   * Check if user can upload book
+   * @returns {Promise} { can_upload }
+   */
+  canUploadBook: async () => {
+    return apiClient.get('/buku/can-upload');
+  },
+
+  /**
+   * Get all book validations (admin)
+   * @param {object} params - { status, sort, limit, offset, nrp }
+   * @returns {Promise} { data, total, limit, offset }
    */
   getAllBookValidations: async (params = {}) => {
-    return apiClient.get('/validations/books', { params });
+    return apiClient.get('/buku', { params });
+  },
+
+  /**
+   * Get buku stats for admin
+   * @param {string} nrp - Optional NRP filter
+   * @returns {Promise} { total, dalam_antrian, diproses, selesai_convert, lolos, tidak_lolos, menunggu_validasi }
+   */
+  getBukuStatsAdmin: async (nrp = null) => {
+    const params = nrp ? { nrp } : {};
+    return apiClient.get('/buku/stats', { params });
   },
 
   /**
