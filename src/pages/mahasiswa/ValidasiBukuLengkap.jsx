@@ -13,6 +13,14 @@ import NotificationSnackbar from '../../components/shared/ui/NotificationSnackba
 import ValidasiBukuDialog from '../../components/mahasiswa/upload/ValidasiBukuDialog';
 import { validationService, handleApiError } from '../../services';
 
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} ${hours}:${minutes}`;
+};
+
 export default function UploadBuku() {
   const { setHeaderInfo } = useHeader();
   const navigate = useNavigate();
@@ -21,10 +29,8 @@ export default function UploadBuku() {
   const statusFromUrl = searchParams.get('status') || 'Semua';
   const [filterStatus, setFilterStatus] = useState(statusFromUrl);
   const [sortBy, setSortBy] = useState('terbaru');
-  const [searchQuery, setSearchQuery] = useState('');
   const [tempFilterStatus, setTempFilterStatus] = useState(statusFromUrl);
   const [tempSortBy, setTempSortBy] = useState('terbaru');
-  const [tempSearchQuery, setTempSearchQuery] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const createFromUrl = searchParams.get('create') === 'true';
@@ -86,9 +92,10 @@ export default function UploadBuku() {
       const result = await validationService.getBookValidationsByUser(user, backendParams);
       const transformedData = (result.data || []).map(item => ({
         id: item.id,
-        filename: `BK-${item.id}`,
+        type: 'book',
+        filename: `#${item.id} | ${formatDate(item.tanggal_upload)}`,
         judulBuku: item.judul,
-        date: item.tanggal_upload,
+        date: formatDate(item.tanggal_upload),
         numChapters: item.jumlah_bab,
         status: item.status === 'dalam_antrian' ? 'Dalam Antrian' : 
                 item.status === 'diproses' ? 'Diproses' :
@@ -114,7 +121,7 @@ export default function UploadBuku() {
     if (user) {
       fetchValidations();
     }
-  }, [user, filterStatus, sortBy, searchQuery]);
+  }, [user, filterStatus, sortBy]);
 
   useEffect(() => {
     setFilterStatus(statusFromUrl);
@@ -124,17 +131,14 @@ export default function UploadBuku() {
   const handleApplyFilter = () => {
     setFilterStatus(tempFilterStatus);
     setSortBy(tempSortBy);
-    setSearchQuery(tempSearchQuery);
     setPage(1);
   };
 
   const handleReset = () => {
     setFilterStatus('Semua');
     setSortBy('terbaru');
-    setSearchQuery('');
     setTempFilterStatus('Semua');
     setTempSortBy('terbaru');
-    setTempSearchQuery('');
     setPage(1);
   };
 
@@ -204,8 +208,6 @@ export default function UploadBuku() {
         </Box>
 
         <FilterBar
-          searchQuery={tempSearchQuery}
-          onSearchChange={setTempSearchQuery}
           filterStatus={tempFilterStatus}
           onFilterChange={setTempFilterStatus}
           sortBy={tempSortBy}

@@ -14,6 +14,23 @@ import CekDokumenDialog from '../../components/mahasiswa/upload/CekDokumenDialog
 import { validationService, handleApiError } from '../../services';
 import { useWebSocket } from '../../hooks/useWebSocket';
 
+const formatFileSize = (bytes) => {
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  } else if (bytes >= 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+  return `${bytes} B`;
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} ${hours}:${minutes}`;
+};
+
 export default function Upload() {
   const { setHeaderInfo } = useHeader();
   const navigate = useNavigate();
@@ -81,8 +98,8 @@ export default function Upload() {
       const transformedData = response.data.map(item => ({
         id: item.id,
         filename: item.filename,
-        date: new Date(item.tanggal_upload).toLocaleDateString('id-ID'),
-        size: `${(item.ukuran_file / (1024 * 1024)).toFixed(1)} MB`,
+        date: formatDate(item.tanggal_upload),
+        size: formatFileSize(item.ukuran_file),
         status: {
           'dibatalkan': 'Dibatalkan',
           'dalam_antrian': 'Dalam Antrian',

@@ -3,7 +3,7 @@ import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import { CancelOutlined, DownloadOutlined } from '@mui/icons-material';
 import StatusChip from './StatusChip';
 
-const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload, showCancelButton = true, additionalInfo, isAdminView = false, judulTA, nama, nrp, jurusan, skor, judulBuku, totalFiles, type }) => (
+const HistoryItem = ({ id, filename, date, size, status, statusColor, errorCount, onCancel, isPassedValidation, onDetail, onDownload, showCancelButton = true, additionalInfo, isAdminView = false, judulTA, nama, nrp, jurusan, skor, judulBuku, totalFiles, type, numChapters }) => (
   <Paper
     elevation={0}
     onClick={onDetail}
@@ -40,17 +40,13 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
       <Box sx={{ minWidth: 0, flex: 1 }}>
         {isAdminView ? (
           <>
-            <Typography fontWeight="600" noWrap>{type === 'book' ? judulBuku : judulTA}</Typography>
-            <Stack direction="row" spacing={1} divider={<Typography color="text.secondary">•</Typography>}>
-              {type === 'book' ? (
-                <Typography variant="body2" color="text.secondary">{totalFiles} file</Typography>
-              ) : (
-                <Typography variant="body2" color="text.secondary">{filename}</Typography>
-              )}
-              <Typography variant="body2" color="text.secondary">{date}</Typography>
-              <Typography variant="body2" color="text.secondary">{nama}</Typography>
-              <Typography variant="body2" color="text.secondary">{nrp}</Typography>
-              <Typography variant="body2" color="text.secondary">{jurusan}</Typography>
+            <Typography fontWeight="600" noWrap sx={{ mb: 0.5 }}>{type === 'book' ? judulBuku : judulTA}</Typography>
+            <Stack direction="row" spacing={1.5} divider={<Box sx={{ width: '1px', alignSelf: 'stretch', bgcolor: '#CBD5E1' }} />}>
+              <Typography variant="body2" color="text.secondary" sx={{ flex: '0 0 10%' }}>{type === 'book' ? `ID: ${id}` : filename}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ flex: '0 0 20%' }}>{date}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ flex: '0 0 25%' }}>{nama}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ flex: '0 0 10%' }}>{nrp}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ flex: '1 1 auto' }}>{jurusan}</Typography>
             </Stack>
           </>
         ) : (
@@ -58,15 +54,14 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
             <Typography fontWeight="600" noWrap>
               {type === 'book' ? filename : filename}
             </Typography>
-            <Stack direction="row" spacing={1} divider={<Typography color="text.secondary">•</Typography>}>
-              <Typography variant="body2" color="text.secondary">Diupload pada {date}</Typography>
-              {type === 'book' ? (
-                <Typography variant="body2" color="text.secondary">{totalFiles} file</Typography>
-              ) : (
+            {type === 'book' ? (
+              <Typography variant="body2" color="text.secondary">{numChapters} bab</Typography>
+            ) : (
+              <Stack direction="row" spacing={1} divider={<Typography color="text.secondary">•</Typography>}>
+                <Typography variant="body2" color="text.secondary">Diupload pada {date}</Typography>
                 <Typography variant="body2" color="text.secondary">{size}</Typography>
-              )}
-              {additionalInfo && <Typography variant="body2" color="text.secondary">{additionalInfo}</Typography>}
-            </Stack>
+              </Stack>
+            )}
           </>
         )}
       </Box>
@@ -75,8 +70,8 @@ const HistoryItem = ({ filename, date, size, status, statusColor, errorCount, on
       <Box textAlign="right" sx={{ width: 100 }}>
         {isAdminView ? (
           <>
-            {skor !== null && <Typography fontWeight="600" variant="body2">Skor: {skor}</Typography>}
-            {errorCount !== null && <Typography variant="caption" color="text.secondary">{errorCount} Kesalahan</Typography>}
+            {(status === 'Lolos' || status === 'Tidak Lolos') && skor !== null && <Typography fontWeight="600" variant="body2">Skor: {skor}</Typography>}
+            {(status === 'Lolos' || status === 'Tidak Lolos') && errorCount !== null && <Typography variant="caption" color="text.secondary">{errorCount} Kesalahan</Typography>}
           </>
         ) : (status === 'Lolos' || status === 'Tidak Lolos') && errorCount !== null && (
           <>

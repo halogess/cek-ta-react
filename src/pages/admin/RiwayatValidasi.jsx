@@ -9,6 +9,14 @@ import DataInfo from '../../components/shared/ui/DataInfo';
 import HistoryList from '../../components/shared/ui/HistoryList';
 import { validationService, jurusanService, handleApiError } from '../../services';
 
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} ${hours}:${minutes}`;
+};
+
 const History = () => {
   const { setHeaderInfo } = useHeader();
   const navigate = useNavigate();
@@ -31,6 +39,7 @@ const History = () => {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [allData, setAllData] = useState([]);
+  const [totalData, setTotalData] = useState(0);
   const [loading, setLoading] = useState(false);
   const [jurusanList, setJurusanList] = useState([]);
 
@@ -51,7 +60,7 @@ const History = () => {
 
   useEffect(() => {
     fetchValidations();
-  }, [filterStatus, filterProdi, startDate, endDate, sortBy, searchQuery]);
+  }, [filterStatus, filterProdi, startDate, endDate, sortBy, searchQuery, page, rowsPerPage]);
 
 
 
@@ -75,18 +84,36 @@ const History = () => {
         }
       }
       
+      if (filterProdi !== 'Semua') {
+        backendParams.jurusan = filterProdi;
+      }
+      
+      if (searchQuery) {
+        backendParams.search = searchQuery;
+      }
+      
+      if (startDate) {
+        backendParams.startDate = startDate;
+      }
+      
+      if (endDate) {
+        backendParams.endDate = endDate;
+      }
+      
       backendParams.sort = sortBy === 'terlama' ? 'asc' : 'desc';
-      backendParams.limit = 1000;
+      backendParams.limit = rowsPerPage;
+      backendParams.offset = (page - 1) * rowsPerPage;
       
       console.log('📋 Fetching buku with params:', backendParams);
       const result = await validationService.getAllBookValidations(backendParams);
       console.log('📋 Buku result:', result);
       
-      let transformedData = (result.data || []).map(item => ({
+      const transformedData = (result.data || []).map(item => ({
         id: item.id,
-        filename: `BK-${item.id}`,
+        type: 'book',
+        filename: `#${item.id}`,
         judulBuku: item.judul,
-        date: item.tanggal_upload,
+        date: formatDate(item.tanggal_upload),
         numChapters: item.jumlah_bab,
         status: item.status === 'dalam_antrian' ? 'Dalam Antrian' : 
                 item.status === 'diproses' ? 'Diproses' :
@@ -96,34 +123,12 @@ const History = () => {
         skor: item.skor,
         nrp: item.nrp,
         nama: item.nama,
-        jurusan: item.jurusan
+        jurusan: item.singkatan || item.jurusan
       }));
-      
-      if (filterProdi !== 'Semua') {
-        transformedData = transformedData.filter(item => item.jurusan === filterProdi);
-      }
-      
-      if (searchQuery) {
-        transformedData = transformedData.filter(item => 
-          item.nama?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.nrp?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-      
-      if (startDate) {
-        transformedData = transformedData.filter(item => 
-          new Date(item.date) >= new Date(startDate)
-        );
-      }
-      
-      if (endDate) {
-        transformedData = transformedData.filter(item => 
-          new Date(item.date) <= new Date(endDate + 'T23:59:59')
-        );
-      }
       
       console.log('📋 Transformed data:', transformedData);
       setAllData(transformedData);
+      setTotalData(result.total || 0);
     } catch (error) {
       console.error('❌ Error fetching validations:', error);
       handleApiError(error);
@@ -143,16 +148,17 @@ const History = () => {
   }, [prodiFromUrl]);
 
   const handleApplyFilter = () => {
+    setPage(1);
     setFilterStatus(tempFilterStatus);
     setFilterProdi(tempFilterProdi);
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
     setSortBy(tempSortBy);
     setSearchQuery(tempSearchQuery);
-    setPage(1);
   };
 
   const handleReset = () => {
+    setPage(1);
     setFilterStatus('Semua');
     setFilterProdi('Semua');
     setStartDate('');
@@ -165,17 +171,16 @@ const History = () => {
     setTempEndDate('');
     setTempSortBy('terbaru');
     setTempSearchQuery('');
-    setPage(1);
   };
 
   const handleDownloadCertificate = () => {
     setShowSuccess(true);
   };
 
-  const totalPages = Math.ceil(allData.length / rowsPerPage);
+  const totalPages = Math.ceil(totalData / rowsPerPage);
   const startIndex = (page - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedData = allData.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + rowsPerPage, totalData);
+  const paginatedData = allData;
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -215,7 +220,7 @@ const History = () => {
         <DataInfo
           startIndex={startIndex}
           endIndex={endIndex}
-          totalData={allData.length}
+          totalData={totalData}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleRowsPerPageChange}
         />
