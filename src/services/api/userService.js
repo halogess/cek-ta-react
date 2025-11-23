@@ -33,4 +33,28 @@ export const userService = {
   getAllUsers: async () => {
     return apiClient.get('/users');
   },
+
+  /**
+   * Get daftar status mahasiswa non-aktif
+   * @returns {Promise} Array of { value, label }
+   */
+  getNonActiveStatus: async () => {
+    return apiClient.get('/mahasiswa/nonactive/status');
+  },
+
+  /**
+   * Get daftar angkatan mahasiswa non-aktif
+   * @returns {Promise} Array of string (tahun angkatan)
+   */
+  getNonActiveAngkatan: async () => {
+    return apiClient.get('/mahasiswa/nonactive/angkatan');
+  },
+
+  /**
+   * Get daftar jurusan mahasiswa non-aktif
+   * @returns {Promise} Array of { kode, nama, singkatan }
+   */
+  getNonActiveJurusan: async () => {
+    return apiClient.get('/mahasiswa/nonactive/jurusan');
+  },
 };

@@ -3,7 +3,7 @@ import { Stack, Paper, Typography, Button, Box, List, ListItem, ListItemText, Ch
 import { SearchOutlined, DeleteOutline, InfoOutlined, PersonOffOutlined } from '@mui/icons-material';
 import { useHeader } from '../../context/HeaderContext';
 import Loading from '../../components/shared/ui/Loading';
-import { bukuService, jurusanService, handleApiError } from '../../services';
+import { bukuService, userService, handleApiError } from '../../services';
 
 export default function HapusRiwayat() {
   const { setHeaderInfo } = useHeader();
@@ -13,20 +13,29 @@ export default function HapusRiwayat() {
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-  const [jurusan, setJurusan] = useState('Semua');
-  const [angkatan, setAngkatan] = useState('Semua');
+  const [jurusan, setJurusan] = useState('');
+  const [angkatan, setAngkatan] = useState('');
+  const [status, setStatus] = useState('');
   const [jurusanList, setJurusanList] = useState([]);
+  const [angkatanList, setAngkatanList] = useState([]);
+  const [statusList, setStatusList] = useState([]);
 
   useEffect(() => {
     setHeaderInfo({ title: 'Hapus Riwayat Validasi' });
-    fetchJurusan();
+    fetchFilters();
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
 
-  const fetchJurusan = async () => {
+  const fetchFilters = async () => {
     try {
-      const data = await jurusanService.getAllJurusan();
-      setJurusanList(data);
+      const [jurusanData, angkatanData, statusData] = await Promise.all([
+        userService.getNonActiveJurusan(),
+        userService.getNonActiveAngkatan(),
+        userService.getNonActiveStatus()
+      ]);
+      setJurusanList(jurusanData);
+      setAngkatanList(angkatanData);
+      setStatusList(statusData);
     } catch (error) {
       handleApiError(error);
     }
@@ -35,8 +44,10 @@ export default function HapusRiwayat() {
   const handleSearch = async () => {
     try {
       setLoading(true);
-      const params = { status: 'lolos', limit: 1000, offset: 0 };
-      if (jurusan !== 'Semua') params.jurusan = jurusan;
+      const params = { limit: 1000, offset: 0 };
+      if (jurusan) params.jurusan = jurusan;
+      if (angkatan) params.angkatan = angkatan;
+      if (status) params.status = status;
       
       const result = await bukuService.getBukuLulus(params);
       const data = (result.data || []).map(item => ({
@@ -91,23 +102,17 @@ export default function HapusRiwayat() {
   return (
     <Stack spacing={3}>
       <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <DeleteOutline sx={{ color: '#EF4444', fontSize: 28 }} />
-          <Typography variant="h6" fontWeight="600">
-            Hapus Riwayat Validasi Mahasiswa Lulus
-          </Typography>
-        </Box>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
           <InfoOutlined sx={{ color: '#64748B', fontSize: 20, mt: 0.3 }} />
           <Typography variant="body2" color="text.secondary">
-            Gunakan fitur ini untuk menghapus riwayat validasi buku dari mahasiswa yang sudah lulus. Pilih jurusan dan angkatan, lalu klik tombol cari untuk menampilkan daftar mahasiswa.
+            Hapus riwayat validasi buku dari mahasiswa yang statusnya selain aktif (mengundurkan diri, alumni, DO, dan lain-lain). Klik tombol filter untuk memulai pencarian.
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2, mt: 2, alignItems: 'center' }}>
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel>Jurusan</InputLabel>
             <Select value={jurusan} onChange={(e) => setJurusan(e.target.value)} label="Jurusan">
-              <MenuItem value="Semua">Semua</MenuItem>
+              <MenuItem value="">Semua</MenuItem>
               {jurusanList.map(j => (
                 <MenuItem key={j.kode} value={j.kode}>{j.nama}</MenuItem>
               ))}
@@ -116,10 +121,19 @@ export default function HapusRiwayat() {
           <FormControl sx={{ minWidth: 150 }}>
             <InputLabel>Angkatan</InputLabel>
             <Select value={angkatan} onChange={(e) => setAngkatan(e.target.value)} label="Angkatan">
-              <MenuItem value="Semua">Semua</MenuItem>
-              <MenuItem value="2020">2020</MenuItem>
-              <MenuItem value="2021">2021</MenuItem>
-              <MenuItem value="2022">2022</MenuItem>
+              <MenuItem value="">Semua</MenuItem>
+              {angkatanList.map((a, idx) => (
+                <MenuItem key={`angkatan-${idx}`} value={a}>{a}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Status</InputLabel>
+            <Select value={status} onChange={(e) => setStatus(e.target.value)} label="Status">
+              <MenuItem value="">Semua Kecuali Aktif</MenuItem>
+              {statusList.map(s => (
+                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+              ))}
             </Select>
           </FormControl>
           <Button 
@@ -127,7 +141,7 @@ export default function HapusRiwayat() {
             startIcon={<SearchOutlined />}
             onClick={handleSearch}
           >
-            Cari Mahasiswa Lulus
+            Filter
           </Button>
         </Box>
       </Paper>
