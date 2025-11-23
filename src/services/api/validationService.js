@@ -136,13 +136,12 @@ export const validationService = {
       }
     }
     
-    if (params.sort) {
-      backendParams.sort = params.sort === 'terlama' ? 'asc' : 'desc';
-    }
+    backendParams.sort = params.sort === 'terlama' ? 'asc' : 'desc';
     
     if (params.limit) backendParams.limit = params.limit;
     if (params.offset !== undefined) backendParams.offset = params.offset;
     
+
     return apiClient.get('/buku', { params: backendParams });
   },
 
@@ -152,6 +151,10 @@ export const validationService = {
    */
   getBukuStats: async () => {
     return apiClient.get('/buku/stats');
+  },
+
+  getBukuJudul: async () => {
+    return apiClient.get('/buku/judul');
   },
 
   /**
@@ -178,6 +181,7 @@ export const validationService = {
    */
   getBukuStatsAdmin: async (nrp = null) => {
     const params = nrp ? { nrp } : {};
+
     return apiClient.get('/buku/stats', { params });
   },
 
@@ -187,7 +191,16 @@ export const validationService = {
    * @returns {Promise} { message }
    */
   cancelDokumen: async (id) => {
-    return apiClient.patch(`/dokumen/${id}/cancel`);
+    return apiClient.patch(`/dokumen/${id}/batal`);
+  },
+
+  /**
+   * Cancel buku yang sedang dalam antrian
+   * @param {number} id - Buku ID
+   * @returns {Promise} { message }
+   */
+  cancelBuku: async (id) => {
+    return apiClient.patch(`/buku/${id}/batal`);
   },
 
   /**

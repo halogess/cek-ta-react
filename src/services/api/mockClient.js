@@ -306,6 +306,45 @@ const mockApiClient = {
       ];
     }
     
+    if (endpoint === '/buku/lulus') {
+      const { jurusan, status = 'lolos', limit = 10, offset = 0 } = options.params || {};
+      
+      const mockData = [
+        {
+          nrp: '222117032',
+          nama: 'Ahmad Ridwan',
+          jurusan: { kode: 'IF', nama: 'Teknik Informatika', singkatan: 'TI' },
+          total_buku: 2,
+          buku: [
+            { id: 1, judul: 'Implementasi Machine Learning', status: 'lolos', skor: 85 },
+            { id: 5, judul: 'Deep Learning untuk Computer Vision', status: 'lolos', skor: 88 }
+          ]
+        },
+        {
+          nrp: '222117',
+          nama: 'Jessica Admin',
+          jurusan: { kode: 'SI', nama: 'Sistem Informasi', singkatan: 'SI' },
+          total_buku: 1,
+          buku: [
+            { id: 5, judul: 'Aplikasi Mobile Jessica', status: 'lolos', skor: 90 }
+          ]
+        }
+      ];
+      
+      let filtered = mockData;
+      
+      if (jurusan) {
+        filtered = filtered.filter(m => m.jurusan.kode === jurusan);
+      }
+      
+      return {
+        data: filtered.slice(offset, offset + limit),
+        total: filtered.length,
+        limit,
+        offset
+      };
+    }
+    
     if (endpoint.startsWith('/users/')) {
       const userId = endpoint.split('/').pop();
       return userController.getUserByNrp(userId);

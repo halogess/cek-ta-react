@@ -7,22 +7,15 @@ import FilterBar from '../../components/shared/ui/FilterBar';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 import DataInfo from '../../components/shared/ui/DataInfo';
 import HistoryList from '../../components/shared/ui/HistoryList';
-import { validationService, jurusanService, handleApiError } from '../../services';
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} ${hours}:${minutes}`;
-};
+import { bukuService, jurusanService, handleApiError } from '../../services';
+import { formatDate, transformStatus } from '../../utils/dataTransformers';
 
 const History = () => {
   const { setHeaderInfo } = useHeader();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const statusFromUrl = searchParams.get('status') || 'Semua';
-  const prodiFromUrl = searchParams.get('prodi') || 'Semua';
+  const prodiFromUrl = searchParams.get('jurusan') || searchParams.get('prodi') || 'Semua';
   const [filterStatus, setFilterStatus] = useState(statusFromUrl);
   const [filterProdi, setFilterProdi] = useState(prodiFromUrl);
   const [startDate, setStartDate] = useState('');
@@ -104,9 +97,7 @@ const History = () => {
       backendParams.limit = rowsPerPage;
       backendParams.offset = (page - 1) * rowsPerPage;
       
-      console.log('📋 Fetching buku with params:', backendParams);
-      const result = await validationService.getAllBookValidations(backendParams);
-      console.log('📋 Buku result:', result);
+      const result = await bukuService.getAllBookValidations(backendParams);
       
       const transformedData = (result.data || []).map(item => ({
         id: item.id,
@@ -115,18 +106,13 @@ const History = () => {
         judulBuku: item.judul,
         date: formatDate(item.tanggal_upload),
         numChapters: item.jumlah_bab,
-        status: item.status === 'dalam_antrian' ? 'Dalam Antrian' : 
-                item.status === 'diproses' ? 'Diproses' :
-                item.status === 'lolos' ? 'Lolos' :
-                item.status === 'tidak_lolos' ? 'Tidak Lolos' : 'Dibatalkan',
+        status: transformStatus(item.status),
         errorCount: item.jumlah_kesalahan,
         skor: item.skor,
         nrp: item.nrp,
         nama: item.nama,
         jurusan: item.singkatan || item.jurusan
       }));
-      
-      console.log('📋 Transformed data:', transformedData);
       setAllData(transformedData);
       setTotalData(result.total || 0);
     } catch (error) {

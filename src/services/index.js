@@ -6,6 +6,8 @@
 
 export { authService } from './api/authService';
 export { validationService } from './api/validationService';
+export { dokumenService } from './api/dokumenService';
+export { bukuService } from './api/bukuService';
 export { templateService } from './api/templateService';
 export { settingsService } from './api/settingsService';
 export { dashboardService } from './api/dashboardService';

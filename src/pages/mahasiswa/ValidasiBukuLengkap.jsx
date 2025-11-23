@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Stack, Paper, Pagination, Box, Button, Alert, Typography } from '@mui/material';
 import { Add } from '@mui/icons-material';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import Loading from '../../components/shared/ui/Loading';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useHeader } from '../../context/HeaderContext';
@@ -11,15 +12,9 @@ import HistoryList from '../../components/shared/ui/HistoryList';
 import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
 import ValidasiBukuDialog from '../../components/mahasiswa/upload/ValidasiBukuDialog';
-import { validationService, handleApiError } from '../../services';
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} ${hours}:${minutes}`;
-};
+import { bukuService, handleApiError } from '../../services';
+import { transformBukuData } from '../../utils/dataTransformers';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 export default function UploadBuku() {
   const { setHeaderInfo } = useHeader();
@@ -41,19 +36,31 @@ export default function UploadBuku() {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [validationHistoryData, setValidationHistoryData] = useState([]);
+  const [totalData, setTotalData] = useState(0);
   const [loading, setLoading] = useState(false);
   const [canUploadBook, setCanUploadBook] = useState(true);
   const [judulBuku, setJudulBuku] = useState('');
+  const { subscribe } = useWebSocket();
+
+  const fetchJudulBuku = async () => {
+    try {
+      const judulData = await bukuService.getBukuJudul();
+      setJudulBuku(judulData.judul || '');
+    } catch (error) {
+      console.error('Error fetching judul buku:', error);
+    }
+  };
 
   useEffect(() => {
     setHeaderInfo({ title: 'Validasi Buku Lengkap' });
     checkCanUploadBook();
+    fetchJudulBuku();
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
 
   const checkCanUploadBook = async () => {
     try {
-      const result = await validationService.canUploadBook();
+      const result = await bukuService.canUploadBook();
       setCanUploadBook(result.can_upload);
     } catch (error) {
       handleApiError(error);
@@ -86,30 +93,15 @@ export default function UploadBuku() {
         }
       }
       
-      backendParams.sort = sortBy === 'terlama' ? 'asc' : 'desc';
-      backendParams.limit = 1000;
+      backendParams.sort = sortBy;
+      backendParams.limit = rowsPerPage;
+      backendParams.offset = (page - 1) * rowsPerPage;
       
-      const result = await validationService.getBookValidationsByUser(user, backendParams);
-      const transformedData = (result.data || []).map(item => ({
-        id: item.id,
-        type: 'book',
-        filename: `#${item.id} | ${formatDate(item.tanggal_upload)}`,
-        judulBuku: item.judul,
-        date: formatDate(item.tanggal_upload),
-        numChapters: item.jumlah_bab,
-        status: item.status === 'dalam_antrian' ? 'Dalam Antrian' : 
-                item.status === 'diproses' ? 'Diproses' :
-                item.status === 'lolos' ? 'Lolos' :
-                item.status === 'tidak_lolos' ? 'Tidak Lolos' : 'Dibatalkan',
-        errorCount: item.jumlah_kesalahan,
-        skor: item.skor
-      }));
+      const result = await bukuService.getBookValidationsByUser(user, backendParams);
+      const transformedData = (result.data || []).map(transformBukuData);
       
       setValidationHistoryData(transformedData);
-      
-      if (transformedData.length > 0) {
-        setJudulBuku(transformedData[0].judulBuku);
-      }
+      setTotalData(result.total || 0);
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -121,7 +113,17 @@ export default function UploadBuku() {
     if (user) {
       fetchValidations();
     }
-  }, [user, filterStatus, sortBy]);
+  }, [user, filterStatus, sortBy, page, rowsPerPage]);
+
+  useEffect(() => {
+    const unsubscribeStatusChange = subscribe('buku_status_changed', (data) => {
+      console.log('📨 Buku status changed, refreshing...');
+      fetchValidations();
+      checkCanUploadBook();
+    });
+
+    return unsubscribeStatusChange;
+  }, [subscribe]);
 
   useEffect(() => {
     setFilterStatus(statusFromUrl);
@@ -129,6 +131,7 @@ export default function UploadBuku() {
   }, [statusFromUrl]);
 
   const handleApplyFilter = () => {
+    console.log('🔄 Apply filter:', { tempFilterStatus, tempSortBy });
     setFilterStatus(tempFilterStatus);
     setSortBy(tempSortBy);
     setPage(1);
@@ -150,7 +153,7 @@ export default function UploadBuku() {
   const handleConfirmCancel = async () => {
     try {
       const item = validationHistoryData.find(v => v.filename === selectedDoc);
-      await validationService.cancelValidation(item.id);
+      await bukuService.cancelBuku(item.id);
       setOpenDialog(false);
       setSelectedDoc(null);
       setShowCancelSuccess(true);
@@ -167,7 +170,7 @@ export default function UploadBuku() {
 
   const handleCreateSubmit = async (data) => {
     try {
-      await validationService.uploadBook(data.files, data.judulBuku);
+      await bukuService.uploadBook(data.files, data.judulBuku);
       setShowUploadSuccess(true);
       checkCanUploadBook();
       fetchValidations();
@@ -176,10 +179,10 @@ export default function UploadBuku() {
     }
   };
 
-  const totalPages = Math.ceil(validationHistoryData.length / rowsPerPage);
+  const totalPages = Math.ceil(totalData / rowsPerPage);
   const startIndex = (page - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedData = validationHistoryData.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + rowsPerPage, totalData);
+  const paginatedData = validationHistoryData;
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -194,6 +197,20 @@ export default function UploadBuku() {
 
   return (
     <Stack spacing={3}>
+      {judulBuku && (
+        <Paper elevation={0} sx={{ p: 2.5, borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#F8FAFC' }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 48, width: 48, height: 48, borderRadius: '12px', bgcolor: '#3B82F6', color: 'white', flexShrink: 0 }}>
+              <MenuBookIcon sx={{ fontSize: 28 }} />
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Judul Buku TA</Typography>
+              <Typography variant="h6" fontWeight="600">{judulBuku}</Typography>
+            </Box>
+          </Stack>
+        </Paper>
+      )}
+      
       <Paper elevation={0} sx={{ p: 3, borderRadius: '12px', border: '1px solid #E2E8F0' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h6" fontWeight="600">Riwayat Validasi Buku Lengkap</Typography>
@@ -219,7 +236,7 @@ export default function UploadBuku() {
         <DataInfo
           startIndex={startIndex}
           endIndex={endIndex}
-          totalData={validationHistoryData.length}
+          totalData={totalData}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleRowsPerPageChange}
         />

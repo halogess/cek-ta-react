@@ -19,7 +19,8 @@ import StatsCards from '../../components/mahasiswa/dashboard/StatsCards';
 
 import ConfirmDialog from '../../components/shared/ui/ConfirmDialog';
 import NotificationSnackbar from '../../components/shared/ui/NotificationSnackbar';
-import { validationService, dashboardService, handleApiError } from '../../services';
+import { dokumenService, bukuService, handleApiError } from '../../services';
+import { transformDokumenData, transformBukuData, transformStats } from '../../utils/dataTransformers';
 import { useWebSocket } from '../../hooks/useWebSocket';
 
 export default function MahasiswaDashboard() {
@@ -59,12 +60,18 @@ export default function MahasiswaDashboard() {
     try {
       const allData = [...dokumenData, ...bukuData];
       const item = allData.find(v => v.filename === selectedDoc);
-      await validationService.cancelDokumen(item.id);
+      
+      if (item.type === 'book') {
+        await bukuService.cancelBuku(item.id);
+      } else {
+        await dokumenService.cancelDokumen(item.id);
+      }
+      
       setOpenDialog(false);
       setSelectedDoc(null);
       setShowCancelSuccess(true);
       await checkCanUpload();
-      await fetchValidations(); // Refresh data
+      await fetchValidations();
     } catch (error) {
       handleApiError(error);
     }
@@ -85,19 +92,27 @@ export default function MahasiswaDashboard() {
   }, [setHeaderInfo, user]);
 
   useEffect(() => {
-    const unsubscribe = subscribe('validation_complete', (data) => {
-      console.log('📨 Dashboard: Validation complete');
+    const unsubscribeDokumen = subscribe('dokumen_status_changed', (data) => {
+      console.log('📨 Dashboard: Dokumen status changed');
       fetchValidations();
       checkCanUpload();
+    });
+
+    const unsubscribeBuku = subscribe('buku_status_changed', (data) => {
+      console.log('📨 Dashboard: Buku status changed');
+      fetchValidations();
       checkCanUploadBook();
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeDokumen();
+      unsubscribeBuku();
+    };
   }, [subscribe]);
 
   const checkCanUpload = async () => {
     try {
-      const result = await validationService.canUpload();
+      const result = await dokumenService.canUpload();
       setCanUpload(result.can_upload);
     } catch (error) {
       console.error('❌ Can upload error:', error);
@@ -107,7 +122,7 @@ export default function MahasiswaDashboard() {
 
   const checkCanUploadBook = async () => {
     try {
-      const result = await validationService.canUploadBook();
+      const result = await bukuService.canUploadBook();
       setCanUploadBook(result.can_upload);
     } catch (error) {
       console.error('❌ Can upload book error:', error);
@@ -119,70 +134,34 @@ export default function MahasiswaDashboard() {
   const fetchValidations = async () => {
     try {
       setLoading(true);
-      const stats = await validationService.getDokumenStats();
+      const stats = await dokumenService.getDokumenStats();
+      setDokumenStats(transformStats(stats));
       
-      // Transform backend format to frontend format
-      setDokumenStats({
-        total: stats.total,
-        waiting: stats.dalam_antrian + stats.diproses,
-        passed: stats.lolos,
-        needsFix: stats.tidak_lolos,
-        cancelled: stats.dibatalkan
-      });
-      
-      // Fetch 3 riwayat terbaru
-      const history = await validationService.getDokumenByUser(user, { limit: 3, sort: 'desc' });
-      
-      // Transform backend format to frontend format
-      const transformedData = (history.data || []).map(item => ({
-        id: item.id,
-        filename: item.filename,
-        date: item.tanggal_upload,
-        size: `${(item.ukuran_file / (1024 * 1024)).toFixed(1)} MB`,
-        status: item.status === 'dalam_antrian' ? 'Dalam Antrian' : 
-                item.status === 'diproses' ? 'Diproses' :
-                item.status === 'lolos' ? 'Lolos' :
-                item.status === 'tidak_lolos' ? 'Tidak Lolos' : 'Dibatalkan',
-        errorCount: item.jumlah_kesalahan
-      }));
-      
+      const history = await dokumenService.getDokumenByUser(user, { limit: 3, sort: 'desc' });
+      const transformedData = (history.data || []).map(transformDokumenData);
       setDokumenData(transformedData);
+
+      // Fetch judul buku
+      try {
+        const judulData = await bukuService.getBukuJudul();
+        setJudulBuku(judulData.judul || '');
+      } catch (err) {
+        console.error('Error fetching judul buku:', err);
+      }
 
       // Fetch buku stats
       try {
-        const bukuStatsData = await validationService.getBukuStats();
-        setBukuStats({
-          total: bukuStatsData.total,
-          waiting: bukuStatsData.dalam_antrian + bukuStatsData.diproses,
-          passed: bukuStatsData.lolos,
-          needsFix: bukuStatsData.tidak_lolos,
-          cancelled: 0
-        });
+        const bukuStatsData = await bukuService.getBukuStats();
+        setBukuStats(transformStats(bukuStatsData));
       } catch (err) {
         console.error('Error fetching buku stats:', err);
       }
 
       // Fetch buku history
       try {
-        const bukuHistory = await validationService.getBookValidationsByUser(user, { limit: 3, sort: 'desc' });
-        const transformedBuku = (bukuHistory.data || []).map(item => ({
-          id: item.id,
-          filename: `BK-${item.id}`,
-          judulBuku: item.judul,
-          date: item.tanggal_upload,
-          numChapters: item.jumlah_bab,
-          status: item.status === 'dalam_antrian' ? 'Dalam Antrian' : 
-                  item.status === 'diproses' ? 'Diproses' :
-                  item.status === 'lolos' ? 'Lolos' :
-                  item.status === 'tidak_lolos' ? 'Tidak Lolos' : 'Dibatalkan',
-          errorCount: item.jumlah_kesalahan,
-          skor: item.skor
-        }));
+        const bukuHistory = await bukuService.getBookValidationsByUser(user, { limit: 3, sort: 'desc' });
+        const transformedBuku = (bukuHistory.data || []).map(transformBukuData);
         setBukuData(transformedBuku);
-
-        if (transformedBuku.length > 0) {
-          setJudulBuku(transformedBuku[0].judulBuku);
-        }
       } catch (err) {
         console.error('Error fetching buku history:', err);
       }
@@ -228,7 +207,7 @@ export default function MahasiswaDashboard() {
         {judulBuku && (
           <Paper elevation={0} sx={{ p: 2.5, borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#F8FAFC' }}>
             <Stack direction="row" spacing={2} alignItems="center">
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '12px', bgcolor: '#3B82F6', color: 'white' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 48, width: 48, height: 48, borderRadius: '12px', bgcolor: '#3B82F6', color: 'white', flexShrink: 0 }}>
                 <MenuBookIcon sx={{ fontSize: 28 }} />
               </Box>
               <Box>

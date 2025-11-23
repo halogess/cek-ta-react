@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ErrorStatistics({ errorStats = [], usersByProdi = {} }) {
   const navigate = useNavigate();
-  const maxUsers = Math.max(...Object.values(usersByProdi), 1);
+  const maxUsers = Math.max(...Object.values(usersByProdi).map(v => v.count || v), 1);
 
   return (
     <Stack spacing={3}>
@@ -57,42 +57,46 @@ export default function ErrorStatistics({ errorStats = [], usersByProdi = {} }) 
             <Typography variant="body2" color="text.secondary" textAlign="center" width="100%" py={3}>
               Belum ada data pengguna
             </Typography>
-          ) : Object.entries(usersByProdi).map(([prodi, count]) => (
-            <Box 
-              key={prodi} 
-              onClick={() => navigate(`/admin/history?prodi=${prodi}`)}
-              sx={{ 
-                flex: 1, 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                gap: 1,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-4px)'
-                }
-              }}
-            >
-              <Typography variant="h5" fontWeight="bold" color="#3B82F6">{count}</Typography>
-              <Box sx={{ 
-                width: '100%', 
-                height: `${(count / maxUsers) * 150}px`,
-                minHeight: 40,
-                bgcolor: '#3B82F6',
-                borderRadius: '8px 8px 0 0',
-                display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'center',
-                pb: 1,
-                transition: 'all 0.2s',
-                '&:hover': {
-                  bgcolor: '#2563EB'
-                }
-              }} />
-              <Typography variant="body2" fontWeight="medium" textAlign="center" sx={{ wordBreak: 'break-word' }}>{prodi}</Typography>
-            </Box>
-          ))}
+          ) : Object.entries(usersByProdi).map(([kode, data]) => {
+            const count = data.count || data;
+            const label = data.label || kode;
+            return (
+              <Box 
+                key={kode} 
+                onClick={() => navigate(`/admin/history?jurusan=${kode}`)}
+                sx={{ 
+                  flex: 1, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-4px)'
+                  }
+                }}
+              >
+                <Typography variant="h5" fontWeight="bold" color="#3B82F6">{count}</Typography>
+                <Box sx={{ 
+                  width: '100%', 
+                  height: `${(count / maxUsers) * 150}px`,
+                  minHeight: 40,
+                  bgcolor: '#3B82F6',
+                  borderRadius: '8px 8px 0 0',
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'center',
+                  pb: 1,
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    bgcolor: '#2563EB'
+                  }
+                }} />
+                <Typography variant="body2" fontWeight="medium" textAlign="center" sx={{ wordBreak: 'break-word' }}>{label}</Typography>
+              </Box>
+            );
+          })}
         </Box>
       </Paper>
     </Stack>

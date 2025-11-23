@@ -3,6 +3,7 @@ import { Stack, Paper, Typography, Button, Box, List, ListItem, ListItemText, Ch
 import { SearchOutlined, DeleteOutline, InfoOutlined, PersonOffOutlined } from '@mui/icons-material';
 import { useHeader } from '../../context/HeaderContext';
 import Loading from '../../components/shared/ui/Loading';
+import { bukuService, jurusanService, handleApiError } from '../../services';
 
 export default function HapusRiwayat() {
   const { setHeaderInfo } = useHeader();
@@ -14,34 +15,45 @@ export default function HapusRiwayat() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [jurusan, setJurusan] = useState('Semua');
   const [angkatan, setAngkatan] = useState('Semua');
+  const [jurusanList, setJurusanList] = useState([]);
 
   useEffect(() => {
     setHeaderInfo({ title: 'Hapus Riwayat Validasi' });
+    fetchJurusan();
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
 
+  const fetchJurusan = async () => {
+    try {
+      const data = await jurusanService.getAllJurusan();
+      setJurusanList(data);
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
   const handleSearch = async () => {
-    setLoading(true);
-    setTimeout(() => {
-      let data = [
-        { nrp: '5025201001', nama: 'Ahmad Ridwan', jurusan: 'Teknik Informatika', angkatan: '2020', totalBuku: 8 },
-        { nrp: '5025201002', nama: 'Siti Nurhaliza', jurusan: 'Sistem Informasi', angkatan: '2020', totalBuku: 6 },
-        { nrp: '5025201003', nama: 'Budi Santoso', jurusan: 'Teknik Informatika', angkatan: '2021', totalBuku: 10 },
-        { nrp: '5025211004', nama: 'Dewi Lestari', jurusan: 'Teknologi Informasi', angkatan: '2021', totalBuku: 7 },
-        { nrp: '5025211005', nama: 'Eko Prasetyo', jurusan: 'Sistem Informasi', angkatan: '2021', totalBuku: 9 }
-      ];
+    try {
+      setLoading(true);
+      const params = { status: 'lolos', limit: 1000, offset: 0 };
+      if (jurusan !== 'Semua') params.jurusan = jurusan;
       
-      if (jurusan !== 'Semua') {
-        data = data.filter(s => s.jurusan === jurusan);
-      }
-      if (angkatan !== 'Semua') {
-        data = data.filter(s => s.angkatan === angkatan);
-      }
+      const result = await bukuService.getBukuLulus(params);
+      const data = (result.data || []).map(item => ({
+        nrp: item.nrp,
+        nama: item.nama,
+        jurusan: item.jurusan?.singkatan || item.jurusan?.nama || '',
+        angkatan: item.nrp?.substring(0, 4) || '-',
+        totalBuku: item.total_buku || 0
+      }));
       
       setGraduatedStudents(data);
       setSelectedStudents([]);
+    } catch (error) {
+      handleApiError(error);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleToggleStudent = (nrp) => {
@@ -96,9 +108,9 @@ export default function HapusRiwayat() {
             <InputLabel>Jurusan</InputLabel>
             <Select value={jurusan} onChange={(e) => setJurusan(e.target.value)} label="Jurusan">
               <MenuItem value="Semua">Semua</MenuItem>
-              <MenuItem value="Teknik Informatika">Teknik Informatika</MenuItem>
-              <MenuItem value="Sistem Informasi">Sistem Informasi</MenuItem>
-              <MenuItem value="Teknologi Informasi">Teknologi Informasi</MenuItem>
+              {jurusanList.map(j => (
+                <MenuItem key={j.kode} value={j.kode}>{j.nama}</MenuItem>
+              ))}
             </Select>
           </FormControl>
           <FormControl sx={{ minWidth: 150 }}>
