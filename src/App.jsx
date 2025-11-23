@@ -12,58 +12,31 @@ import { logout } from './redux/userSlice';
 import { useHeader } from './context/HeaderContext';
 import Sidebar from './components/shared/layout/Sidebar';
 import AppHeader from './components/shared/layout/AppHeader';
-import { userService } from './services';
-
-// Konstanta lebar drawer/sidebar
-const drawerWidth = 280;
 
 function App() {
-  // State untuk kontrol sidebar mobile (overlay)
   const [mobileOpen, setMobileOpen] = useState(false);
-  
-  // State untuk kontrol sidebar desktop (collapse/expand)
   const [desktopOpen, setDesktopOpen] = useState(true);
-  
-  // Hooks untuk responsive design
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
-  // Redux hooks untuk state management dan navigation
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Ambil data user dari Redux store
-  const { role, user, nama } = useSelector((state) => state.user);
-  
-  // Ambil info header dari context
+  const { role, nama } = useSelector((state) => state.user);
   const { headerInfo } = useHeader();
+  const [displayName, setDisplayName] = useState(nama || (role === 'admin' ? 'Administrator' : 'Mahasiswa'));
 
-  // Scroll ke atas setiap kali route berubah
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // State untuk nama user yang ditampilkan di header
-  const [displayName, setDisplayName] = useState(nama || (role === 'admin' ? 'Administrator' : 'Mahasiswa'));
-
-  // Update displayName jika nama dari Redux berubah
   useEffect(() => {
-    if (nama) {
-      setDisplayName(nama);
-    }
+    if (nama) setDisplayName(nama);
   }, [nama]);
 
-  // Handler untuk toggle sidebar (mobile: overlay, desktop: collapse)
   const handleDrawerToggle = () => {
-    if (isMobile) {
-      setMobileOpen(!mobileOpen);
-    } else {
-      setDesktopOpen(!desktopOpen);
-    }
+    isMobile ? setMobileOpen(!mobileOpen) : setDesktopOpen(!desktopOpen);
   };
 
-  // Handler untuk logout - clear Redux state dan redirect ke login
   const handleLogout = () => {
     dispatch(logout());
     navigate('/');
@@ -71,7 +44,6 @@ function App() {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* Header dengan menu toggle dan user info */}
       <AppHeader
         desktopOpen={desktopOpen}
         onDrawerToggle={handleDrawerToggle}
@@ -79,19 +51,15 @@ function App() {
         displayName={displayName}
         onLogout={handleLogout}
       />
-
-      {/* Sidebar dengan menu navigasi */}
       <Sidebar
         isMobile={isMobile}
         mobileOpen={mobileOpen}
         desktopOpen={desktopOpen}
         onDrawerToggle={handleDrawerToggle}
       />
-
-      {/* Main content area - tempat render nested routes */}
       <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: '#F9FAFB', minHeight: '100vh' }}>
-        <Toolbar /> {/* Spacer untuk offset header */}
-        <Outlet /> {/* Render nested routes di sini */}
+        <Toolbar />
+        <Outlet />
       </Box>
     </Box>
   );

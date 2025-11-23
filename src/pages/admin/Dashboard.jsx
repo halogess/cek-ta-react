@@ -4,7 +4,7 @@ import { useHeader } from '../../context/HeaderContext';
 import StatsCards from '../../components/admin/dashboard/StatsCards';
 import ErrorStatistics from '../../components/admin/dashboard/ErrorStatistics';
 import Loading from '../../components/shared/ui/Loading';
-import { dashboardService, bukuService } from '../../services';
+import { bukuService } from '../../services';
 import { transformStats } from '../../utils/dataTransformers';
 
 export default function AdminDashboard() {
@@ -18,8 +18,6 @@ export default function AdminDashboard() {
     fetchDashboardData();
     return () => setHeaderInfo({ title: '' });
   }, [setHeaderInfo]);
-
-
 
   const fetchDashboardData = async () => {
     try {
@@ -40,7 +38,6 @@ export default function AdminDashboard() {
       setStats(mappedStats);
       setErrorStats([]);
     } catch (error) {
-      console.error('❌ CATCH block:', error);
       setStats({ total: 0, waiting: 0, passed: 0, needsFix: 0, usersByProdi: {} });
       setErrorStats([]);
     } finally {
@@ -50,8 +47,6 @@ export default function AdminDashboard() {
 
   if (loading) return <Loading message="Memuat dashboard..." />;
 
-
-  
   return (
     <Stack spacing={3}>
       <StatsCards stats={stats} />

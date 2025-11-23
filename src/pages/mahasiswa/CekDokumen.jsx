@@ -13,23 +13,7 @@ import NotificationSnackbar from '../../components/shared/ui/NotificationSnackba
 import CekDokumenDialog from '../../components/mahasiswa/upload/CekDokumenDialog';
 import { validationService, handleApiError } from '../../services';
 import { useWebSocket } from '../../hooks/useWebSocket';
-
-const formatFileSize = (bytes) => {
-  if (bytes >= 1024 * 1024) {
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  } else if (bytes >= 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
-  return `${bytes} B`;
-};
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} ${hours}:${minutes}`;
-};
+import { formatDate } from '../../utils/dataTransformers';
 
 export default function Upload() {
   const { setHeaderInfo } = useHeader();
@@ -94,19 +78,20 @@ export default function Upload() {
       };
       const response = await validationService.getDokumenByUser(user, params);
       
-      // Transform backend response to frontend format
+      const statusMap = {
+        'dibatalkan': 'Dibatalkan',
+        'dalam_antrian': 'Dalam Antrian',
+        'diproses': 'Diproses',
+        'lolos': 'Lolos',
+        'tidak_lolos': 'Tidak Lolos'
+      };
+      
       const transformedData = response.data.map(item => ({
         id: item.id,
         filename: item.filename,
         date: formatDate(item.tanggal_upload),
-        size: formatFileSize(item.ukuran_file),
-        status: {
-          'dibatalkan': 'Dibatalkan',
-          'dalam_antrian': 'Dalam Antrian',
-          'diproses': 'Diproses',
-          'lolos': 'Lolos',
-          'tidak_lolos': 'Tidak Lolos'
-        }[item.status] || item.status,
+        size: `${(item.ukuran_file / (1024 * 1024)).toFixed(1)} MB`,
+        status: statusMap[item.status] || item.status,
         errorCount: item.jumlah_kesalahan,
         isPassedValidation: item.status === 'lolos'
       }));
@@ -130,7 +115,7 @@ export default function Upload() {
   }, [user, filterStatus, sortBy, page, rowsPerPage]);
 
   useEffect(() => {
-    const unsubscribeComplete = subscribe('validation_complete', (data) => {
+    const unsubscribeComplete = subscribe('validation_complete', () => {
       fetchValidations();
       checkCanUpload();
     });
@@ -150,7 +135,6 @@ export default function Upload() {
             : item
         )
       );
-      
       checkCanUpload();
     });
 
@@ -198,16 +182,12 @@ export default function Upload() {
   };
 
   const handleCreateSubmit = async (file) => {
-    try {
-      const result = await validationService.uploadDokumen(file);
-      setShowUploadSuccess(true);
-      setOpenCreateDialog(false);
-      checkCanUpload();
-      fetchValidations();
-      return result;
-    } catch (error) {
-      throw error;
-    }
+    const result = await validationService.uploadDokumen(file);
+    setShowUploadSuccess(true);
+    setOpenCreateDialog(false);
+    checkCanUpload();
+    fetchValidations();
+    return result;
   };
 
   const totalPages = Math.ceil(totalData / rowsPerPage);

@@ -92,14 +92,12 @@ export default function MahasiswaDashboard() {
   }, [setHeaderInfo, user]);
 
   useEffect(() => {
-    const unsubscribeDokumen = subscribe('dokumen_status_changed', (data) => {
-      console.log('📨 Dashboard: Dokumen status changed');
+    const unsubscribeDokumen = subscribe('dokumen_status_changed', () => {
       fetchValidations();
       checkCanUpload();
     });
 
-    const unsubscribeBuku = subscribe('buku_status_changed', (data) => {
-      console.log('📨 Dashboard: Buku status changed');
+    const unsubscribeBuku = subscribe('buku_status_changed', () => {
       fetchValidations();
       checkCanUploadBook();
     });
@@ -115,7 +113,6 @@ export default function MahasiswaDashboard() {
       const result = await dokumenService.canUpload();
       setCanUpload(result.can_upload);
     } catch (error) {
-      console.error('❌ Can upload error:', error);
       handleApiError(error);
     }
   };
@@ -125,7 +122,6 @@ export default function MahasiswaDashboard() {
       const result = await bukuService.canUploadBook();
       setCanUploadBook(result.can_upload);
     } catch (error) {
-      console.error('❌ Can upload book error:', error);
       handleApiError(error);
     }
   };
@@ -141,30 +137,21 @@ export default function MahasiswaDashboard() {
       const transformedData = (history.data || []).map(transformDokumenData);
       setDokumenData(transformedData);
 
-      // Fetch judul buku
       try {
         const judulData = await bukuService.getBukuJudul();
         setJudulBuku(judulData.judul || '');
-      } catch (err) {
-        console.error('Error fetching judul buku:', err);
-      }
+      } catch (err) {}
 
-      // Fetch buku stats
       try {
         const bukuStatsData = await bukuService.getBukuStats();
         setBukuStats(transformStats(bukuStatsData));
-      } catch (err) {
-        console.error('Error fetching buku stats:', err);
-      }
+      } catch (err) {}
 
-      // Fetch buku history
       try {
         const bukuHistory = await bukuService.getBookValidationsByUser(user, { limit: 3, sort: 'desc' });
         const transformedBuku = (bukuHistory.data || []).map(transformBukuData);
         setBukuData(transformedBuku);
-      } catch (err) {
-        console.error('Error fetching buku history:', err);
-      }
+      } catch (err) {}
     } catch (error) {
       handleApiError(error);
     } finally {

@@ -39,15 +39,15 @@ export const userService = {
    * @returns {Promise} Array of { value, label }
    */
   getNonActiveStatus: async () => {
-    return apiClient.get('/mahasiswa/nonactive/status');
+    return apiClient.get('/mahasiswa/nonaktif/status');
   },
 
   /**
    * Get daftar angkatan mahasiswa non-aktif
-   * @returns {Promise} Array of string (tahun angkatan)
+   * @returns {Promise} Array of number (tahun angkatan)
    */
   getNonActiveAngkatan: async () => {
-    return apiClient.get('/mahasiswa/nonactive/angkatan');
+    return apiClient.get('/mahasiswa/nonaktif/angkatan');
   },
 
   /**
@@ -55,6 +55,15 @@ export const userService = {
    * @returns {Promise} Array of { kode, nama, singkatan }
    */
   getNonActiveJurusan: async () => {
-    return apiClient.get('/mahasiswa/nonactive/jurusan');
+    return apiClient.get('/mahasiswa/nonaktif/jurusan');
+  },
+
+  /**
+   * Get daftar mahasiswa non-aktif dengan riwayat validasi buku
+   * @param {object} params - { status, angkatan, jurusan, search, limit, offset }
+   * @returns {Promise} { data, total, limit, offset }
+   */
+  getNonActiveMahasiswaBuku: async (params) => {
+    return apiClient.get('/mahasiswa/nonaktif/buku', { params });
   },
 };

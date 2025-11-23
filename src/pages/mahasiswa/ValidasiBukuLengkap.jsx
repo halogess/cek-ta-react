@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Stack, Paper, Pagination, Box, Button, Alert, Typography } from '@mui/material';
+import { Stack, Paper, Pagination, Box, Button, Typography } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import Loading from '../../components/shared/ui/Loading';
@@ -46,9 +46,7 @@ export default function UploadBuku() {
     try {
       const judulData = await bukuService.getBukuJudul();
       setJudulBuku(judulData.judul || '');
-    } catch (error) {
-      console.error('Error fetching judul buku:', error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -116,8 +114,7 @@ export default function UploadBuku() {
   }, [user, filterStatus, sortBy, page, rowsPerPage]);
 
   useEffect(() => {
-    const unsubscribeStatusChange = subscribe('buku_status_changed', (data) => {
-      console.log('📨 Buku status changed, refreshing...');
+    const unsubscribeStatusChange = subscribe('buku_status_changed', () => {
       fetchValidations();
       checkCanUploadBook();
     });
@@ -131,7 +128,6 @@ export default function UploadBuku() {
   }, [statusFromUrl]);
 
   const handleApplyFilter = () => {
-    console.log('🔄 Apply filter:', { tempFilterStatus, tempSortBy });
     setFilterStatus(tempFilterStatus);
     setSortBy(tempSortBy);
     setPage(1);
@@ -182,7 +178,6 @@ export default function UploadBuku() {
   const totalPages = Math.ceil(totalData / rowsPerPage);
   const startIndex = (page - 1) * rowsPerPage;
   const endIndex = Math.min(startIndex + rowsPerPage, totalData);
-  const paginatedData = validationHistoryData;
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -242,7 +237,7 @@ export default function UploadBuku() {
         />
 
         <HistoryList
-          data={paginatedData}
+          data={validationHistoryData}
           onDetail={(id) => navigate(`/mahasiswa/detail/${id}`)}
           onDownload={handleDownloadCertificate}
           onCancel={handleCancelClick}
